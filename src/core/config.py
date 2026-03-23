@@ -1,24 +1,53 @@
 from pathlib import Path
 
-# Diretório base do projeto
+# ========================
+# BASE DO PROJETO
+# ========================
 BASE_DIR = Path(__file__).resolve().parents[2]
 
-# Banco de dados
-DB_PATH = BASE_DIR / "data" / "walleto.db"
+# ========================
+# BANCO DE DADOS
+# ========================
+DATA_DIR = BASE_DIR / "data"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-# Excel / exportação
+DB_PATH = DATA_DIR / "walleto.db"
+
+# ========================
+# EXPORTAÇÃO
+# ========================
 NOME_PLANILHA = "Gastos"
 
-# Dashboard
+# ========================
+# DASHBOARD
+# ========================
 HOST_PADRAO = "127.0.0.1"
 PORTA_PADRAO = 8501
 TIMEOUT_STREAMLIT = 15
-NOME_PLANILHA = "Gastos"
 ARQUIVO_CONTROLE_DASHBOARD = "dashboard_arquivo_atual.txt"
 
-# Logs
+# ========================
+# LOGS
+# ========================
 LOGS_DIR = BASE_DIR / "logs"
-LOGS_DIR.mkdir(exist_ok=True)
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
-# Diretorio documentos
+# ========================
+# DOCUMENTOS DO USUÁRIO
+# ========================
 PASTA_DOCUMENTOS = Path.home() / "Documentos"
+PASTA_DOCUMENTOS.mkdir(parents=True, exist_ok=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+

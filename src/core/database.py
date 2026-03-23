@@ -1,18 +1,9 @@
-# Importações principais
-from pathlib import Path
 import sqlite3
+from src.core.config import DB_PATH
 
-# Cria e retorna a conexão com o banco de dados SQLite
 def get_connection():
-    # Pasta do usuário (funciona em Linux, Windows e macOS)
-    app_dir = Path.home() / ".walleto"
-    app_dir.mkdir(parents=True, exist_ok=True)
-
-    db_path = app_dir / "walleto.db"
-
-    return sqlite3.connect(db_path)
-
-
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    return sqlite3.connect(DB_PATH)
 
 
 def inicializar_banco():
