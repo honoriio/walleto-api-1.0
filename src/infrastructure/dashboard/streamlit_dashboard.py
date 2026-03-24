@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+import os
+import signal
 import socket
 import subprocess
 import sys
@@ -7,17 +10,19 @@ import time
 import webbrowser
 from pathlib import Path
 
-from src.core.config import (
-    HOST_PADRAO,
-    PORTA_PADRAO,
-    TIMEOUT_STREAMLIT,
-    NOME_PLANILHA,
-    ARQUIVO_CONTROLE_DASHBOARD,
-    BASE_DIR,
-)
-
 import pandas as pd
 import streamlit as st
+
+from src.core.config import (
+    ARQUIVO_CONTROLE_DASHBOARD,
+    BASE_DIR,
+    HOST_PADRAO,
+    NOME_PLANILHA,
+    PORTA_PADRAO,
+    TIMEOUT_STREAMLIT,
+)
+
+ARQUIVO_ESTADO_DASHBOARD = "dashboard_runtime.json"
 
 
 def formatar_moeda_brl(valor: float) -> str:
@@ -42,6 +47,10 @@ def obter_arquivo_controle_dashboard() -> Path:
     return obter_pasta_logs() / ARQUIVO_CONTROLE_DASHBOARD
 
 
+def obter_arquivo_estado_dashboard() -> Path:
+    return obter_pasta_logs() / ARQUIVO_ESTADO_DASHBOARD
+
+
 def salvar_caminho_arquivo_dashboard(caminho_arquivo: str | Path) -> Path:
     caminho = Path(caminho_arquivo).expanduser().resolve()
     arquivo_controle = obter_arquivo_controle_dashboard()
@@ -60,6 +69,36 @@ def ler_caminho_arquivo_dashboard() -> Path | None:
         return None
 
     return Path(conteudo).expanduser().resolve()
+
+
+def salvar_estado_dashboard(estado: dict) -> Path:
+    arquivo_estado = obter_arquivo_estado_dashboard()
+    arquivo_estado.write_text(
+        json.dumps(estado, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    return arquivo_estado
+
+
+def ler_estado_dashboard() -> dict | None:
+    arquivo_estado = obter_arquivo_estado_dashboard()
+
+    if not arquivo_estado.exists():
+        return None
+
+    try:
+        conteudo = arquivo_estado.read_text(encoding="utf-8").strip()
+        if not conteudo:
+            return None
+        return json.loads(conteudo)
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def limpar_estado_dashboard() -> None:
+    arquivo_estado = obter_arquivo_estado_dashboard()
+    if arquivo_estado.exists():
+        arquivo_estado.unlink()
 
 
 def validar_colunas_obrigatorias(df: pd.DataFrame) -> None:
@@ -102,7 +141,7 @@ def renderizar_dashboard(caminho_arquivo: str | Path | None = None) -> None:
 
     if caminho_arquivo is None:
         st.info("Nenhum arquivo XLSX foi informado.")
-        st.info("Abra o dashboard a partir do Walleto.")
+        st.info("Inicie o dashboard pela API.")
         return
 
     caminho_arquivo = Path(caminho_arquivo).expanduser().resolve()
@@ -221,17 +260,36 @@ def obter_caminho_script_dashboard(caminho_script: str | Path | None = None) -> 
     return Path(caminho_script).expanduser().resolve()
 
 
-def encerrar_streamlit_existente() -> None:
-    subprocess.run(["pkill", "-f", "streamlit"], capture_output=True, text=True)
-    time.sleep(1.5)
+def _encerrar_pid(pid: int) -> None:
+    if os.name == "nt":
+        subprocess.run(
+            ["taskkill", "/PID", str(pid), "/T", "/F"],
+            capture_output=True,
+            text=True,
+        )
+    else:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except ProcessLookupError:
+            return
 
 
-def abrir_dashboard(
+def encerrar_dashboard_existente() -> None:
+    estado = ler_estado_dashboard()
+
+    if estado and estado.get("pid"):
+        _encerrar_pid(int(estado["pid"]))
+        time.sleep(1.5)
+
+    limpar_estado_dashboard()
+
+
+def iniciar_dashboard(
     caminho_arquivo: str | Path,
     caminho_script: str | Path | None = None,
     porta: int = PORTA_PADRAO,
     abrir_navegador: bool = True,
-) -> tuple[subprocess.Popen, str]:
+) -> dict:
     caminho_arquivo = Path(caminho_arquivo).expanduser().resolve()
     caminho_script_resolvido = obter_caminho_script_dashboard(caminho_script)
 
@@ -243,15 +301,12 @@ def abrir_dashboard(
             f"Script do dashboard não encontrado: {caminho_script_resolvido}"
         )
 
-    arquivo_controle = salvar_caminho_arquivo_dashboard(caminho_arquivo)
-    print(f"\nArquivo de controle atualizado: {arquivo_controle}")
-    print(f"Conteúdo salvo no controle: {caminho_arquivo}")
+    salvar_caminho_arquivo_dashboard(caminho_arquivo)
 
     if porta_esta_ativa(HOST_PADRAO, porta):
-        print("\nDashboard já estava em execução. Reiniciando com a nova base...")
-        encerrar_streamlit_existente()
+        encerrar_dashboard_existente()
 
-    url = f"http://localhost:{porta}"
+    url = f"http://{HOST_PADRAO}:{porta}"
     caminho_log = obter_arquivo_log_dashboard()
     arquivo_log = open(caminho_log, "a", encoding="utf-8")
 
@@ -281,12 +336,26 @@ def abrir_dashboard(
     pronto = esperar_streamlit(porta=porta)
 
     if not pronto:
-        processo.terminate()
+        try:
+            processo.terminate()
+        except Exception:
+            pass
         arquivo_log.close()
         raise RuntimeError(
-            "O dashboard não iniciou a tempo. "
-            f"Consulte o log em: {caminho_log}"
+            f"O dashboard não iniciou a tempo. Consulte o log em: {caminho_log}"
         )
+
+    estado = {
+        "pid": processo.pid,
+        "url": url,
+        "porta": porta,
+        "host": HOST_PADRAO,
+        "caminho_arquivo": str(caminho_arquivo),
+        "caminho_script": str(caminho_script_resolvido),
+        "log": str(caminho_log),
+        "ativo": True,
+    }
+    salvar_estado_dashboard(estado)
 
     if abrir_navegador:
         try:
@@ -294,22 +363,45 @@ def abrir_dashboard(
         except Exception:
             pass
 
-    return processo, url
+    return estado
 
 
-def encerrar_processo(processo: subprocess.Popen | None) -> None:
-    if processo is None:
-        return
+def obter_status_dashboard() -> dict:
+    estado = ler_estado_dashboard()
 
-    if processo.poll() is not None:
-        return
+    if not estado:
+        return {
+            "ativo": False,
+            "url": None,
+            "pid": None,
+            "porta": PORTA_PADRAO,
+        }
 
-    processo.terminate()
+    ativo = porta_esta_ativa(estado.get("host", HOST_PADRAO), int(estado.get("porta", PORTA_PADRAO)))
+    estado["ativo"] = ativo
+    return estado
 
-    try:
-        processo.wait(timeout=5)
-    except subprocess.TimeoutExpired:
-        processo.kill()
+
+def encerrar_dashboard() -> dict:
+    estado = ler_estado_dashboard()
+
+    if not estado:
+        return {
+            "mensagem": "Nenhum dashboard em execução.",
+            "ativo": False,
+        }
+
+    pid = estado.get("pid")
+    if pid:
+        _encerrar_pid(int(pid))
+        time.sleep(1)
+
+    limpar_estado_dashboard()
+
+    return {
+        "mensagem": "Dashboard encerrado com sucesso.",
+        "ativo": False,
+    }
 
 
 if __name__ == "__main__":
