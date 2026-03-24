@@ -1,0 +1,10 @@
+{
+  "pid": 12492,
+  "url": "http://127.0.0.1:8501",
+  "porta": 8501,
+  "host": "127.0.0.1",
+  "caminho_arquivo": "C:\\Users\\diego\\Documentos\\despesas_sem_mes.xlsx",
+  "caminho_script": "C:\\Users\\diego\\OneDrive\\Desktop\\Projetos\\walleto-api-1.0\\src\\infrastructure\\dashboard\\streamlit_dashboard.py",
+  "log": "C:\\Users\\diego\\OneDrive\\Desktop\\Projetos\\walleto-api-1.0\\logs\\streamlit_dashboard.log",
+  "ativo": true
+}
