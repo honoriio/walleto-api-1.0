@@ -2,8 +2,6 @@ from decimal import Decimal, ROUND_HALF_UP
 from src.models.gastos import Gasto
 
 
-
-
 def calcular_gastos_services(lista_de_gastos: list[Gasto]):
     """Recebe uma lista de objetos Gasto e calcula o total."""
     if not lista_de_gastos:

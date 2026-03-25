@@ -267,11 +267,23 @@ def _encerrar_pid(pid: int) -> None:
             capture_output=True,
             text=True,
         )
-    else:
+        return  
+
+    try: # --> Somente o pylanc apagando o codigo
+        os.kill(pid, signal.SIGTERM)
+        time.sleep(1)
+
         try:
-            os.kill(pid, signal.SIGTERM)
+            os.kill(pid, 0)
         except ProcessLookupError:
             return
+        except PermissionError:
+            return
+
+        os.kill(pid, signal.SIGKILL)
+
+    except ProcessLookupError:
+        return
 
 
 def encerrar_dashboard_existente() -> None:
