@@ -1,5 +1,5 @@
 import re 
-import datetime
+from datetime import date, datetime
 
 def nome_usuario(nome: str) -> str: 
         nome = nome.strip()
