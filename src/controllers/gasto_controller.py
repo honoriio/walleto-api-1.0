@@ -1,7 +1,6 @@
 from src.repositories.gasto_repository import filtrar_gastos_nome_repository, inserir_gasto_repository, editar_gastos_repository, buscar_gasto_por_id_repository, excluir_gastos_repository, listar_gastos_repository, filtrar_gastos_categoria_repository, filtrar_gastos_data_repository, filtrar_gasto_valor_repository
 from src.services.relatorio_service import calcular_gastos_services
 from src.infrastructure.exporters.excel_exporter import exportar_gastos_excel
-from src.views.fluxo_dashboard_view import painel_dashboard_em_execucao
 from src.infrastructure.exporters.pdf_exporter import exportar_gastos_pdf
 
 def adicionar_gastos_controller(novo_gasto):
@@ -52,7 +51,6 @@ def exportar_gastos_controller(gastos):
 
 def abrir_dashboard_controller(gastos):
     caminho_arquivo = exportar_gastos_excel(gastos)
-    painel_dashboard_em_execucao(caminho_arquivo)
     return caminho_arquivo
 
 
@@ -126,7 +124,6 @@ def exportar_todos_gastos_controller():
 def abrir_dashboard_completo_controller():
     gastos = listar_gastos_repository()
     caminho_arquivo = exportar_gastos_excel(gastos)
-    painel_dashboard_em_execucao(caminho_arquivo)
 
     return caminho_arquivo
 

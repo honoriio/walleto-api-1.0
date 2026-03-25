@@ -1,5 +1,4 @@
 from decimal import Decimal, ROUND_HALF_UP
-from src.core.constants import*
 from src.models.gastos import Gasto
 
 

@@ -1,11 +1,7 @@
 # área destinada as importações
 from decimal import Decimal, InvalidOperation  
 import re
-import string 
 import datetime
-from src.models.gastos import Gasto
-from src.core.constants import *
-from src.repositories.gasto_repository import buscar_gasto_por_id_repository
 
 
 # Função refatorada, foi tirado o uso sem necessidade de try

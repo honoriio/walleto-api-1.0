@@ -1,6 +1,5 @@
 from src.core.database import get_connection
 from decimal import Decimal
-from src.core.constants import*
 from src.models.gastos import Gasto
 
 
