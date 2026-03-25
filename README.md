@@ -58,13 +58,56 @@ A ideia não é recomeçar do zero, mas sim **evoluir uma base já redonda**, ap
 
 ```bash
 walleto-api-1.0/
-├── src/
-│   ├── core/             # Configurações centrais do projeto
-│   ├── domain/           # Entidades e regras de negócio
-│   ├── application/      # Casos de uso da aplicação
-│   ├── infrastructure/   # Persistência, banco de dados e integrações
-│   └── api/              # Rotas e camada HTTP
-├── tests/                # Testes automatizados
-├── requirements.txt
+├── .gitignore
 ├── README.md
-└── main.py
+├── requirements.txt
+├── main.py
+├── data/
+│   └── walleto.db
+├── docs/
+│   └── organizacao_projeto.md
+├── tests/
+│   ├── test_gasto_service.py
+│   ├── test_gasto_validators.py
+│   ├── test_gasto_repository.py
+│   └── test_usuario_validators.py
+└── src/
+    ├── api/
+    │   ├── main.py
+    │   ├── routes/
+    │   │   ├── gasto_routes.py
+    │   │   ├── usuario_routes.py
+    │   │   └── dashboard.py
+    │   └── schemas/
+    │       ├── gasto_schema.py
+    │       └── usuario_schema.py
+    │
+    ├── core/
+    │   ├── config.py
+    │   └── database.py
+    │
+    ├── models/
+    │   ├── gasto.py
+    │   └── usuario.py
+    │
+    ├── validators/
+    │   ├── gasto_validators.py
+    │   └── usuario_validators.py
+    │
+    ├── services/
+    │   ├── gasto_service.py
+    │   └── usuario_service.py
+    │
+    ├── repositories/
+    │   ├── gasto_repository.py
+    │   └── usuario_repository.py
+    │
+    ├── infrastructure/
+    │   ├── dashboard/
+    │   │   └── streamlit_dashboard.py
+    │   └── exporters/
+    │       ├── excel_exporter.py
+    │       └── pdf_exporter.py
+    │
+    └── utils/
+        └── formatters.py
