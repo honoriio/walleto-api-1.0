@@ -1,10 +1,18 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-
-from src.validators.gasto_validator import validar_id_gasto, validar_nome_gasto, validar_valor_gasto, validar_categoria_gasto, validar_descricao_gasto, validar_data_gasto
+from src.api.schemas.gasto_schema import GastoCreateRequest
+from src.services.gasto_service import criar_gasto_service
 
 router = APIRouter(prefix="/gastos", tags=["Gastos"])
 
 
+@router.post("/", response_model=GastoCreateRequest, status_code=201)
+def criar_gasto_api(dados: GastoCreateRequest):
+    try:
+        gasto_criado = criar_gasto_service(dados)
+        return gasto_criado
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro))
+    
 
 
+    

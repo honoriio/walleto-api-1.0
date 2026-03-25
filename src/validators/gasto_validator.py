@@ -18,7 +18,6 @@ def validar_nome_gasto(nome: str)-> str: # --> FUNÇÃO CRIADA PARA COLETAR E VA
 
 def validar_valor_gasto(valor)-> Decimal: # --> FUNÇÃO QUE COLETA, TRATA E VALIDA O VALOR DO GASTO INFORMADO PELO USUARIO
     try:
-        valor = valor.replace(',', '.')  # --> Substitui a vírgula por ponto
         valor = Decimal(valor)
         
         if valor <= 0:
@@ -67,7 +66,7 @@ def validar_data_gasto(data_str: str) -> date:
     try:
         # caso: 01012024
         if len(data_str) == 8 and data_str.isdigit():
-            data_str = f"{data_str[0:2]}/{data_str[2:4]}/{data_str[4:8]}"
+            data_str = f"{data_str[0:2]}/{data_str[2:4]}/{data_str[4:8]}"   
 
         # limpa separadores estranhos
         data_limpa = re.sub(r"\D+", "/", data_str)

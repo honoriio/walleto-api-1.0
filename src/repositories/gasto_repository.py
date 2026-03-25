@@ -1,25 +1,31 @@
 from src.core.database import get_connection
 from decimal import Decimal
 from src.models.gastos import Gasto
-from src.utils.date_utils import converter_data_ISO
+from src.utils.date_utils import formatar_data_ISO
 
 
-def inserir_gasto_repository(gasto): # insere os valores informados pelo usuario a tabela gastos 
-    try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO gastos (nome, valor, categoria, descricao, data) VALUES (?, ?, ?, ?, ?)", 
-                (gasto.nome, str(gasto.valor), gasto.categoria, gasto.descricao, gasto.data)
-            )
-            if cursor.rowcount > 0:
-                conn.commit()
-                return {"status": "sucesso", "mensagem": "Gasto Cadastrado com Sucesso!"}
-            else:
-                return {"status": "erro", "mensagem": "Nenhum gasto cadastrado"}
-            
-    except Exception as e:
-        return {"status": "erro", "mensagem": f"Erro ao cadastrar gasto: {e}"}
+def inserir_gasto_repository(gasto: Gasto) -> Gasto:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO gastos (nome, valor, categoria, descricao, data)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                gasto.nome,
+                str(gasto.valor),
+                gasto.categoria,
+                gasto.descricao,
+                gasto.data,
+            ),
+        )
+
+        conn.commit()
+        gasto.id = cursor.lastrowid
+
+    return gasto
 
 
 
@@ -160,8 +166,8 @@ def listar_gastos_repository():
 
 
 def filtrar_gastos_data_repository(data_inicio, data_final):
-    data_inicio = converter_data_ISO(data_inicio)
-    data_final = converter_data_ISO(data_final)
+    data_inicio = formatar_data_ISO(data_inicio)
+    data_final = formatar_data_ISO(data_final)
 
     with get_connection() as conn:
         cursor = conn.cursor()
