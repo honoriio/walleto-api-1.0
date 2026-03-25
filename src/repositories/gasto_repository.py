@@ -1,6 +1,7 @@
 from src.core.database import get_connection
 from decimal import Decimal
 from src.models.gastos import Gasto
+from src.utils.date_utils import converter_data_para_banco
 
 
 def inserir_gasto_repository(gasto): # insere os valores informados pelo usuario a tabela gastos 
@@ -156,10 +157,6 @@ def listar_gastos_repository():
 
         return gastos_objetos
 
-
-
-def converter_data_para_banco(data_str: str) -> str:
-    return data_str.strftime("%Y-%m-%d")
 
 
 def filtrar_gastos_data_repository(data_inicio, data_final):

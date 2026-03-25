@@ -1,8 +1,8 @@
 # Área destinada a importações
-import datetime
+from datetime import date, datetime
 import re
 
-def validar_e_converter_data(data_str: str) -> datetime.date:
+def converter_data_brasil(data_str: str) -> date:
     """
     Tenta converter uma string de data (formatos DD/MM/AAAA ou DDMMAAAA) 
     em um objeto date. Levanta ValueError se inválido.
@@ -20,3 +20,12 @@ def validar_e_converter_data(data_str: str) -> datetime.date:
         return datetime.datetime.strptime(data_limpa, "%d/%m/%Y").date()
     except ValueError:
         raise ValueError(f"Formato de data '{data_str}' inválido ou data não existe.")
+    
+
+
+def converter_data_ISO(data_str: str) -> str: #--> Ideal  para salvar no banco de dados
+    return data_str.strftime("%Y-%m-%d")
+
+
+def converter_data_brasil(data: str)-> date:  #--> Ideal para mostrar ao usuario, ja no formato brasleiro
+    return datetime.datetime.strptime(data, "%d/%m/%Y").date()

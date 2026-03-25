@@ -1,8 +1,7 @@
 # área destinada as importações
 from decimal import Decimal, InvalidOperation  
 import re
-import datetime
-
+from datetime import date, datetime
 
 # Função refatorada, foi tirado o uso sem necessidade de try
 def validar_nome_gasto(nome: str)-> str: # --> FUNÇÃO CRIADA PARA COLETAR E VALIDAR NOME  | NO CASO DESTA FUÇÃO E NA COLETA DO NOME, A MESMA ACEITA QALQUER CARACTER, POIS ALGUNS ESTABELECIMENTOS USAM NUMEROS NO NOME.
@@ -59,9 +58,9 @@ def validar_descricao_gasto(descricao) -> str:
 
 
 
-def valdiar_data_gasto(data_str) -> str:
+def validar_data_gasto(data_str: str) -> date:
     if not data_str or not str(data_str).strip():
-        return datetime.date.today().strftime("%Y-%m-%d")
+        return date.today()
 
     data_str = str(data_str).strip()
 
@@ -70,12 +69,12 @@ def valdiar_data_gasto(data_str) -> str:
         if len(data_str) == 8 and data_str.isdigit():
             data_str = f"{data_str[0:2]}/{data_str[2:4]}/{data_str[4:8]}"
 
-        # limpa qualquer separador estranho
+        # limpa separadores estranhos
         data_limpa = re.sub(r"\D+", "/", data_str)
 
-        data_valida = datetime.datetime.strptime(data_limpa, "%d/%m/%Y").date()
+        data_obj = datetime.strptime(data_limpa, "%d/%m/%Y").date()
 
-        return data_valida.strftime("%Y-%m-%d")
+        return data_obj
 
     except ValueError:
         raise ValueError("Formato de data inválido. Use DD/MM/AAAA.")
