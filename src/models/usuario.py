@@ -1,14 +1,11 @@
-# Área destinada as importações
-# --> aqui vai ficar os dados do usuario
+from dataclasses import dataclass
+from datetime import date
 
+@dataclass
 class Usuario:
-    def __init__(self, nome, email, sexo=None,idade=None, id=None):
-        self.nome = nome
-        self.email = email
-        self.sexo = sexo
-        self.idade = idade
-        self.id = id
-        self.senha_hash = None
-
-
-        
+    nome: str
+    email: str
+    data_nascimento: date
+    sexo: str | None
+    id: int | None
+    senha_hash: int | None

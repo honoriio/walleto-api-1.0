@@ -1,18 +1,13 @@
+from dataclasses import dataclass
+from datetime import date
 from decimal import Decimal
 
+@dataclass
 class Gasto:
-    def __init__(
-        self,
-        nome: str,
-        valor: Decimal,
-        categoria: str,
-        descricao: str,
-        data: str,
-        id: int | None = None,
-    ):
-        self.id = id
-        self.nome = nome
-        self.valor = valor
-        self.categoria = categoria
-        self.descricao = descricao
-        self.data = data
+    nome: str
+    valor: Decimal
+    categoria: str
+    descricao: str
+    data: date
+    id: int | None = None
+
