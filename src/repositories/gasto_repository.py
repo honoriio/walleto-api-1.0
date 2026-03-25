@@ -1,7 +1,7 @@
 from src.core.database import get_connection
 from decimal import Decimal
 from src.models.gastos import Gasto
-from src.utils.date_utils import converter_data_para_banco
+from src.utils.date_utils import converter_data_ISO
 
 
 def inserir_gasto_repository(gasto): # insere os valores informados pelo usuario a tabela gastos 
@@ -160,8 +160,8 @@ def listar_gastos_repository():
 
 
 def filtrar_gastos_data_repository(data_inicio, data_final):
-    data_inicio = converter_data_para_banco(data_inicio)
-    data_final = converter_data_para_banco(data_final)
+    data_inicio = converter_data_ISO(data_inicio)
+    data_final = converter_data_ISO(data_final)
 
     with get_connection() as conn:
         cursor = conn.cursor()
