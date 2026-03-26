@@ -10,10 +10,13 @@ def validar_nome_gasto(nome: str)-> str: # --> FUNÇÃO CRIADA PARA COLETAR E VA
    if not nome: 
        raise ValueError("O nome do gasto não pode estar em branco")
    
+   if len(nome) < 4:
+       raise ValueError("O nome do gasto não pode ter menor que 4 caracteres.")
+   
    if len(nome) >= 41:
        raise ValueError("O nome do gasto não pode ser maior que 41 caracteres.")
    
-   return nome
+   return nome.strip()
             
 
 def validar_valor_gasto(valor)-> Decimal: # --> FUNÇÃO QUE COLETA, TRATA E VALIDA O VALOR DO GASTO INFORMADO PELO USUARIO

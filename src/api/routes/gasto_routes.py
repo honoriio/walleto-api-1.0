@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from src.api.schemas.gasto_schema import GastoCreateRequest, GastoListResponse, GastoResponse
-from src.services.gasto_service import criar_gasto_service, listar_gastos_service, buscar_gasto_por_id_service,  buscar_gastos_por_categoria_service
+from src.services.gasto_service import criar_gasto_service, listar_gastos_service, buscar_gasto_por_id_service,  buscar_gastos_por_categoria_service,buscar_gastos_por_nome_service
 
 router = APIRouter(prefix="/gastos", tags=["Gastos"])
 
@@ -26,6 +26,14 @@ def buscar_gasto_categoria_api(categoria: str):
         return buscar_gastos_por_categoria_service(categoria)
     except ValueError as erro:
         raise HTTPException(status_code=404, detail=str(erro))
+    
+
+@router.get("/nome", response_model=GastoListResponse, status_code=200)
+def buscar_gasto_por_nome_api(nome: str):
+    try:
+        return buscar_gastos_por_nome_service(nome)
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro))
     
 
 @router.get("/{id}",response_model=GastoResponse,status_code=200)
