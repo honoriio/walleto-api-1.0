@@ -2,7 +2,7 @@ from src.models.gastos import Gasto
 from datetime import date
 from src.utils.date_utils import formatar_data_ISO
 from src.services.relatorio_service import calcular_gastos_services
-from src.repositories.gasto_repository import inserir_gasto_repository, listar_gastos_repository, buscar_gasto_por_id_repository, filtrar_gastos_categoria_repository, filtrar_gastos_nome_repository
+from src.repositories.gasto_repository import inserir_gasto_repository, listar_gastos_repository, buscar_gasto_por_id_repository, filtrar_gastos_categoria_repository, filtrar_gastos_nome_repository, filtrar_gasto_valor_repository
 from src.validators.gasto_validator import validar_nome_gasto, validar_valor_gasto, validar_categoria_gasto, validar_descricao_gasto
 
 def criar_gasto_service(dados) -> Gasto:
@@ -68,3 +68,27 @@ def buscar_gastos_por_nome_service(nome):
         "quantidade": len(gastos)
     }
 
+
+def buscar_gastos_por_valor_service(valor_min, valor_max):
+    
+    if valor_min is None and valor_max is None:
+        raise ValueError("Informe valor_min ou valor_max")
+
+    if valor_min is not None:
+        valor_min = validar_valor_gasto(valor_min)
+
+    if valor_max is not None:
+        valor_max = validar_valor_gasto(valor_max)
+
+    if valor_min is not None and valor_max is not None:
+        if valor_min > valor_max:
+            raise ValueError("valor_min não pode ser maior que valor_max")
+
+    gastos = filtrar_gasto_valor_repository(valor_min, valor_max)
+    total = calcular_gastos_services(gastos)
+
+    return {
+        "gastos": gastos,
+        "total": total,
+        "quantidade": len(gastos)
+    }

@@ -24,7 +24,7 @@ def validar_valor_gasto(valor)-> Decimal: # --> FUNÇÃO QUE COLETA, TRATA E VAL
         valor = Decimal(valor)
         
         if valor <= 0:
-            raise ValueError
+            raise ValueError("O valor deve ser maior que zero.")
 
         return valor
     except InvalidOperation:

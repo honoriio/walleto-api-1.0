@@ -196,10 +196,25 @@ def filtrar_gastos_data_repository(data_inicio, data_final):
 def filtrar_gasto_valor_repository(valor_min, valor_max):
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT * FROM gastos WHERE valor BETWEEN ? AND ?",
-            (str(valor_min), str(valor_max))
-        )
+
+        if valor_min is not None and valor_max is not None:
+            cursor.execute(
+                "SELECT * FROM gastos WHERE valor BETWEEN ? AND ?",
+                (str(valor_min), str(valor_max))
+            )
+
+        elif valor_min is not None:
+            cursor.execute(
+                "SELECT * FROM gastos WHERE valor >= ?",
+                (str(valor_min),)
+            )
+
+        elif valor_max is not None:
+            cursor.execute(
+                "SELECT * FROM gastos WHERE valor <= ?",
+                (str(valor_max),)
+            )
+
         resultados = cursor.fetchall()
 
         gastos_objetos = []
