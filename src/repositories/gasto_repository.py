@@ -220,26 +220,23 @@ def filtrar_gasto_valor_repository(valor_min, valor_max):
 
 
 def filtrar_gastos_categoria_repository(categoria):
-    try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM gastos WHERE categoria = ?", (categoria,))
-            resultados = cursor.fetchall()
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM gastos WHERE categoria = ?", (categoria,))
+        resultados = cursor.fetchall()
 
-            return [
-                Gasto(
-                    id=tupla[0],
-                    nome=tupla[1],
-                    valor=tupla[2],
-                    categoria=tupla[3],
-                    descricao=tupla[4],
-                    data=tupla[5],
-                )
-                for tupla in resultados
-            ]
+        return [
+            Gasto(
+                id=tupla[0],
+                nome=tupla[1],
+                valor=tupla[2],
+                categoria=tupla[3],
+                descricao=tupla[4],
+                data=tupla[5],
+            )
+            for tupla in resultados
+        ]
 
-    except Exception:
-        return None
 
 
 def filtrar_gastos_nome_repository(nome):
