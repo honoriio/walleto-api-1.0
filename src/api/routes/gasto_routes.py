@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from src.api.schemas.gasto_schema import GastoCreateRequest
-from src.services.gasto_service import criar_gasto_service
+from src.api.schemas.gasto_schema import GastoCreateRequest, GastoListResponse
+from src.services.gasto_service import criar_gasto_service, listar_gastos_service
 
 router = APIRouter(prefix="/gastos", tags=["Gastos"])
 
@@ -15,4 +15,7 @@ def criar_gasto_api(dados: GastoCreateRequest):
     
 
 
-    
+@router.get("/", response_model=GastoListResponse, status_code=200)
+def listar_gasto_api():
+    return listar_gastos_service()
+

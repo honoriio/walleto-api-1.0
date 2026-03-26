@@ -1,8 +1,9 @@
 from src.models.gastos import Gasto
 from datetime import date
 from src.utils.date_utils import formatar_data_ISO
-from src.repositories.gasto_repository import inserir_gasto_repository
-from src.validators.gasto_validator import validar_nome_gasto, validar_valor_gasto, validar_categoria_gasto, validar_descricao_gasto, validar_data_gasto
+from src.services.relatorio_service import calcular_gastos_services
+from src.repositories.gasto_repository import inserir_gasto_repository, listar_gastos_repository
+from src.validators.gasto_validator import validar_nome_gasto, validar_valor_gasto, validar_categoria_gasto, validar_descricao_gasto
 
 def criar_gasto_service(dados) -> Gasto:
     nome = validar_nome_gasto(dados.nome)
@@ -23,5 +24,15 @@ def criar_gasto_service(dados) -> Gasto:
 
     gasto_criado = inserir_gasto_repository(novo_gasto)
     return gasto_criado
+
+
+def listar_gastos_service():
+    gastos = listar_gastos_repository()
+    total = calcular_gastos_services(gastos)
+
+    return {
+        "gastos": gastos,
+        "total": total
+    }
 
 

@@ -19,3 +19,9 @@ class GastoResponse(BaseModel):
     categoria: str
     data: date
     descricao: str | None = None
+
+
+class GastoListResponse(BaseModel):
+    gastos: list[GastoResponse]
+    total: Decimal
+
