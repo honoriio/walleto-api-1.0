@@ -166,15 +166,34 @@ def listar_gastos_repository():
 
 
 def filtrar_gastos_data_repository(data_inicio, data_final):
-    data_inicio = formatar_data_ISO(data_inicio)
-    data_final = formatar_data_ISO(data_final)
-
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT * FROM gastos WHERE data BETWEEN ? AND ?",
-            (data_inicio, data_final)
-        )
+
+        if data_inicio is not None and data_final is not None:
+            data_inicio = formatar_data_ISO(data_inicio)
+            data_final = formatar_data_ISO(data_final)
+
+            cursor.execute(
+                "SELECT * FROM gastos WHERE data BETWEEN ? AND ?",
+                (data_inicio, data_final)
+            )
+
+        elif data_inicio is not None:
+            data_inicio = formatar_data_ISO(data_inicio)
+
+            cursor.execute(
+                "SELECT * FROM gastos WHERE data >= ?",
+                (data_inicio,)
+            )
+
+        elif data_final is not None:
+            data_final = formatar_data_ISO(data_final)
+
+            cursor.execute(
+                "SELECT * FROM gastos WHERE data <= ?",
+                (data_final,)
+            )
+
         resultados = cursor.fetchall()
 
         gastos_objetos = []

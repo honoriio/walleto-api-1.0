@@ -2,8 +2,8 @@ from src.models.gastos import Gasto
 from datetime import date
 from src.utils.date_utils import formatar_data_ISO
 from src.services.relatorio_service import calcular_gastos_services
-from src.repositories.gasto_repository import inserir_gasto_repository, listar_gastos_repository, buscar_gasto_por_id_repository, filtrar_gastos_categoria_repository, filtrar_gastos_nome_repository, filtrar_gasto_valor_repository
-from src.validators.gasto_validator import validar_nome_gasto, validar_valor_gasto, validar_categoria_gasto, validar_descricao_gasto
+from src.repositories.gasto_repository import inserir_gasto_repository, listar_gastos_repository, buscar_gasto_por_id_repository, filtrar_gastos_categoria_repository, filtrar_gastos_nome_repository, filtrar_gasto_valor_repository, filtrar_gastos_data_repository
+from src.validators.gasto_validator import validar_nome_gasto, validar_valor_gasto, validar_categoria_gasto, validar_descricao_gasto, validar_data_gasto
 
 def criar_gasto_service(dados) -> Gasto:
     nome = validar_nome_gasto(dados.nome)
@@ -92,3 +92,30 @@ def buscar_gastos_por_valor_service(valor_min, valor_max):
         "total": total,
         "quantidade": len(gastos)
     }
+
+
+def buscar_gastos_por_data_service(data_inicio, data_final):
+    
+    if data_inicio is None and data_final is None:
+        raise ValueError("Informe data_inicio e data_final")
+    
+    if data_inicio is not None:
+        data_inicio = validar_data_gasto(data_inicio)
+        
+
+    if data_final is not None:
+        data_final = validar_data_gasto(data_final)
+
+    if data_inicio is not None and data_final is not None:
+        if data_inicio > data_final:
+            raise ValueError("A data inicial não pode ser maior que a data final")
+        
+    gastos = filtrar_gastos_data_repository(data_inicio, data_final)
+    total = calcular_gastos_services(gastos)
+
+    return {
+        "gastos": gastos,
+        "total": total,
+        "quantidade": len(gastos)
+    }
+    
