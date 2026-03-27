@@ -2,6 +2,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from src.models.gastos import Gasto
 from src.repositories.gasto_repository import listar_gastos_repository
 from src.infrastructure.exporters.excel_exporter import exportar_gastos_excel
+from src.infrastructure.exporters.pdf_exporter import exportar_gastos_pdf
 
 
 def calcular_gastos_services(lista_de_gastos: list[Gasto]):
@@ -25,5 +26,17 @@ def exportar_gastos_xlsx_service()-> str:
         raise ValueError("Não há gastos para exportação.")
 
     caminho_arquivo = exportar_gastos_excel(gastos)
+
+    return caminho_arquivo
+
+
+
+def exportar_gastos_pdf_services()-> str:
+    gastos = listar_gastos_repository()
+
+    if not gastos:
+        raise ValueError("Não há gastos para exportação.")
+    
+    caminho_arquivo = exportar_gastos_pdf(gastos)
 
     return caminho_arquivo
