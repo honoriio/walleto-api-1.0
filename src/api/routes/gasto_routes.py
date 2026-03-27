@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
-from src.api.schemas.gasto_schema import GastoCreateRequest, GastoListResponse, GastoResponse
-from src.services.gasto_service import criar_gasto_service, listar_gastos_service, buscar_gasto_por_id_service,  buscar_gastos_por_categoria_service,buscar_gastos_por_nome_service, buscar_gastos_por_valor_service, buscar_gastos_por_data_service
+from src.core.exceptions import NotFoundError
+from src.api.schemas.gasto_schema import GastoCreateRequest, GastoListResponse, GastoResponse, GastoUpdateRequest
+from src.services.gasto_service import criar_gasto_service, listar_gastos_service, buscar_gasto_por_id_service,  buscar_gastos_por_categoria_service,buscar_gastos_por_nome_service, buscar_gastos_por_valor_service, buscar_gastos_por_data_service, editar_gastos_service
 
 router = APIRouter(prefix="/gastos", tags=["Gastos"])
 
@@ -59,6 +60,17 @@ def buscar_gastos_por_data_api(
     
 
 
+@router.patch("/{id}", response_model=GastoResponse, status_code=200)
+def editar_gastos_api(id: int, dados: GastoUpdateRequest):
+    try:
+        return editar_gastos_service(id, dados)
+    except NotFoundError as erro:
+        raise HTTPException(status_code=404, detail=str(erro))
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro))  
+    
+
+
 @router.get("/{id}",response_model=GastoResponse,status_code=200)
 def buscar_gasto_id_api(id: int):
     try:
@@ -66,3 +78,5 @@ def buscar_gasto_id_api(id: int):
     except ValueError as erro:
         raise HTTPException(status_code=404, detail=str(erro))
     
+
+

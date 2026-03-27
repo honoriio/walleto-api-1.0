@@ -70,73 +70,31 @@ def buscar_gasto_por_id_repository(id: int):
 
 
 
-def editar_gastos_repository(dados): 
-   
-    try:  
-         # Validação inicial do ID. O ID não pode estar vazio.
-         id_gasto = dados.get("id")
-         if not id_gasto:
-             return {"status": "erro", "mensagem": "ID do gasto não fornecido."}
 
-         with get_connection() as conn: 
-            cursor = conn.cursor() 
+def editar_gastos_repository(gasto: Gasto) -> Gasto:
+    with get_connection() as conn:
+        cursor = conn.cursor()
 
-            # --- Passo 1: Buscar dados antigos ---
-            cursor.execute("SELECT nome, valor, categoria, descricao, data FROM gastos WHERE id = ?", (id_gasto,)) 
-            resultado = cursor.fetchone() 
+        cursor.execute(
+            """
+            UPDATE gastos
+            SET nome = ?, valor = ?, categoria = ?, descricao = ?, data = ?
+            WHERE id = ?
+            """,
+            (
+                gasto.nome,
+                str(gasto.valor),
+                gasto.categoria,
+                gasto.descricao,
+                gasto.data,
+                gasto.id,
+            ),
+        )
 
-            if not resultado: 
-                return {"status": "erro", "mensagem": "Gasto não encontrado."} 
+        conn.commit()
 
-            nome_antigo, valor_antigo, categoria_antiga, descricao_antiga, data_antiga = resultado 
+    return gasto
 
-
-            # Se o novo valor (dados.get(campo)) existir E não for uma string vazia, use-o.
-            # Caso contrário (se for None ou ""), mantenha o valor antigo.
-            
-            nome_novo = dados.get("nome")
-            nome = nome_novo if nome_novo else nome_antigo
-            
-            categoria_nova = dados.get("categoria")
-            categoria = categoria_nova if categoria_nova else categoria_antiga
-            
-            descricao_nova = dados.get("descricao")
-            descricao = descricao_nova if descricao_nova else descricao_antiga
-            
-            data_nova = dados.get("data")
-            data = data_nova if data_nova else data_antiga
-
-
-    
-            valor = valor_antigo # Assume o valor antigo por padrão
-            valor_novo_str = dados.get("valor")
-            
-            if valor_novo_str: # Apenas tenta atualizar se um novo valor foi fornecido
-                try:
-                    valor = float(valor_novo_str)
-                except (ValueError, TypeError):
-                    # Se a conversão falhar (ex: "abc" ou um formato inválido), 
-                    # o código ignora a alteração e mantém o valor_antigo.
-                    pass 
-
-            cursor.execute(""" 
-                UPDATE gastos 
-                SET nome = ?, valor = ?, categoria = ?, descricao = ?, data = ? 
-                WHERE id = ? 
-            """, (nome, valor, categoria, descricao, data, id_gasto)) 
-
-            if cursor.rowcount > 0: 
-                conn.commit() 
-                return {"status": "sucesso", "mensagem": "Gasto editado com sucesso!"} 
-            else: 
-                # Isso pode acontecer se os dados novos forem idênticos aos antigos.
-                return {"status": "info", "mensagem": "Nenhuma alteração detectada, os dados já estavam atualizados."}
-            
-    except KeyError as e: 
-         return {"status": "erro", "mensagem": f"Chave {e} não encontrada nos dados fornecidos."} 
-    except Exception as e: 
-         # Captura genérica para outros erros inesperados (ex: falha de conexão)
-         return {"status": "erro", "mensagem": f"Erro inesperado ao editar gasto: {e}"}
 
 
 

@@ -25,3 +25,11 @@ class GastoListResponse(BaseModel):
     gastos: list[GastoResponse]
     total: Decimal
 
+
+
+class GastoUpdateRequest(BaseModel):
+    nome: str | None = None
+    valor: Decimal | None = None
+    categoria: str | None = None
+    data: date | None = None
+    descricao: str | None = None

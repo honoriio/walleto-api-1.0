@@ -4,6 +4,8 @@ from src.api.routes.gasto_routes import router as gastos_router
 
 app = FastAPI()
 
+app.include_router(gastos_router)
+
 app.include_router(dashboard_router)
 
-app.include_router(gastos_router)
+

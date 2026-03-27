@@ -1,9 +1,10 @@
 from src.models.gastos import Gasto
 from datetime import date
 from src.utils.date_utils import formatar_data_ISO
+from src.core.exceptions import NotFoundError
 from src.services.relatorio_service import calcular_gastos_services
-from src.repositories.gasto_repository import inserir_gasto_repository, listar_gastos_repository, buscar_gasto_por_id_repository, filtrar_gastos_categoria_repository, filtrar_gastos_nome_repository, filtrar_gasto_valor_repository, filtrar_gastos_data_repository
-from src.validators.gasto_validator import validar_nome_gasto, validar_valor_gasto, validar_categoria_gasto, validar_descricao_gasto, validar_data_gasto
+from src.repositories.gasto_repository import inserir_gasto_repository, listar_gastos_repository, buscar_gasto_por_id_repository, filtrar_gastos_categoria_repository, filtrar_gastos_nome_repository, filtrar_gasto_valor_repository, filtrar_gastos_data_repository, editar_gastos_repository
+from src.validators.gasto_validator import validar_nome_gasto, validar_valor_gasto, validar_categoria_gasto, validar_descricao_gasto, validar_data_gasto, validar_id_gasto
 
 def criar_gasto_service(dados) -> Gasto:
     nome = validar_nome_gasto(dados.nome)
@@ -119,3 +120,51 @@ def buscar_gastos_por_data_service(data_inicio, data_final):
         "quantidade": len(gastos)
     }
     
+
+def editar_gastos_service(id: int, dados) -> Gasto:
+    id = validar_id_gasto(id)
+    gasto_atual = buscar_gasto_por_id_repository(id)
+
+    if not gasto_atual:
+        raise NotFoundError("Não existe gasto com esse ID.")
+
+    nome_final = (
+        validar_nome_gasto(dados.nome)
+        if dados.nome is not None
+        else gasto_atual.nome
+    )
+
+    valor_final = (
+        validar_valor_gasto(dados.valor)
+        if dados.valor is not None
+        else gasto_atual.valor
+    )
+
+    categoria_final = (
+        validar_categoria_gasto(dados.categoria)
+        if dados.categoria is not None
+        else gasto_atual.categoria
+    )
+
+    descricao_final = (
+        validar_descricao_gasto(dados.descricao)
+        if dados.descricao is not None
+        else gasto_atual.descricao
+    )
+
+    data_final = (
+        formatar_data_ISO(dados.data)
+        if dados.data is not None
+        else gasto_atual.data
+    )
+
+    gasto_editado = Gasto(
+        id=id,
+        nome=nome_final,
+        valor=valor_final,
+        categoria=categoria_final,
+        descricao=descricao_final,
+        data=data_final,
+    )
+
+    return editar_gastos_repository(gasto_editado)
