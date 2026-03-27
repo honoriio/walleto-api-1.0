@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from src.infrastructure.dashboard.streamlit_dashboard import iniciar_dashboard
 from src.infrastructure.exporters.excel_exporter import exportar_gastos_excel
 from src.repositories.gasto_repository import listar_gastos_repository

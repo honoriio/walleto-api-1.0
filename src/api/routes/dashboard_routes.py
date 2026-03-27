@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+
 
 from src.infrastructure.dashboard.streamlit_dashboard import (
     encerrar_dashboard,
@@ -8,12 +8,6 @@ from src.infrastructure.dashboard.streamlit_dashboard import (
 from src.services.dashboard_service import iniciar_dashboard_com_exportacao
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
-
-
-class DashboardStartRequest(BaseModel):
-    caminho_arquivo: str
-    porta: int | None = None
-    abrir_navegador: bool = True
 
 
 @router.post("/iniciar")

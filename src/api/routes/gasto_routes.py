@@ -57,7 +57,6 @@ def buscar_gastos_por_data_api(
         return buscar_gastos_por_data_service(data_inicio, data_final)
     except ValueError as erro:
         raise HTTPException(status_code=400, detail=str(erro))
-    
 
 
 @router.patch("/{id}", response_model=GastoResponse, status_code=200)
