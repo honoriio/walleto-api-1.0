@@ -3,7 +3,7 @@ from datetime import date
 from src.utils.date_utils import formatar_data_ISO
 from src.core.exceptions import NotFoundError
 from src.services.relatorio_service import calcular_gastos_services
-from src.repositories.gasto_repository import inserir_gasto_repository, listar_gastos_repository, buscar_gasto_por_id_repository, filtrar_gastos_categoria_repository, filtrar_gastos_nome_repository, filtrar_gasto_valor_repository, filtrar_gastos_data_repository, editar_gastos_repository
+from src.repositories.gasto_repository import inserir_gasto_repository, listar_gastos_repository, buscar_gasto_por_id_repository, filtrar_gastos_categoria_repository, filtrar_gastos_nome_repository, filtrar_gasto_valor_repository, filtrar_gastos_data_repository, editar_gastos_repository, excluir_gastos_repository
 from src.validators.gasto_validator import validar_nome_gasto, validar_valor_gasto, validar_categoria_gasto, validar_descricao_gasto, validar_data_gasto, validar_id_gasto
 
 def criar_gasto_service(dados) -> Gasto:
@@ -168,3 +168,14 @@ def editar_gastos_service(id: int, dados) -> Gasto:
     )
 
     return editar_gastos_repository(gasto_editado)
+
+
+
+def excluir_gastos_service(id: int) -> None:
+    id = validar_id_gasto(id)
+
+
+    excluido = excluir_gastos_repository(id)
+
+    if not excluido:
+        raise NotFoundError("Não existe gasto com esse ID.")

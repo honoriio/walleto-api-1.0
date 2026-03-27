@@ -30,21 +30,13 @@ def inserir_gasto_repository(gasto: Gasto) -> Gasto:
 
 
 def excluir_gastos_repository(id): # exclui o gasto com base no ID informado pelo usuario
-     try: 
-         with get_connection() as conn: 
-             cursor = conn.cursor()
-             cursor.execute("SELECT * FROM gastos WHERE id = ?", (id,))
-             if cursor.fetchone() is None: 
-                 return {"status": "erro", "mensagem": "Nenhum gasto encontrado com esse ID."}
-             cursor.execute("DELETE FROM gastos WHERE id = ?", (id,))
-             if cursor.rowcount > 0: 
-                 conn.commit() 
-                 return {"status": "sucesso", "mensagem": f"Gasto com ID {id} foi excluído com sucesso."} 
-             else: 
-                 return {"status": "erro", "mensagem": "Falha ao excluir o gasto."}
-     except Exception as e: 
-         return {"status": "erro", "mensagem": f"Erro ao excluir o gasto: {str(e)}"}
+    with get_connection() as conn: 
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM gastos WHERE id = ?", (id,))
+        conn.commit()
 
+        return cursor.rowcount > 0 
+                 
 
 
 
