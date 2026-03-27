@@ -6,7 +6,7 @@ from src.services.relatorio_service import calcular_gastos_services
 from src.repositories.gasto_repository import inserir_gasto_repository, listar_gastos_repository, buscar_gasto_por_id_repository, filtrar_gastos_categoria_repository, filtrar_gastos_nome_repository, filtrar_gasto_valor_repository, filtrar_gastos_data_repository, editar_gastos_repository, excluir_gastos_repository
 from src.validators.gasto_validator import validar_nome_gasto, validar_valor_gasto, validar_categoria_gasto, validar_descricao_gasto, validar_data_gasto, validar_id_gasto
 
-def criar_gasto_service(dados) -> Gasto:
+def criar_gastos_service(dados) -> Gasto:
     nome = validar_nome_gasto(dados.nome)
     valor = validar_valor_gasto(dados.valor)
     categoria = validar_categoria_gasto(dados.categoria)
@@ -38,7 +38,7 @@ def listar_gastos_service():
     }
 
 
-def buscar_gasto_por_id_service(id):
+def buscar_gastos_por_id_service(id):
     gasto = buscar_gasto_por_id_repository(id)
     if not gasto:
         raise ValueError("Não existe gasto com esse ID")

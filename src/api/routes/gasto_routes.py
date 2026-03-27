@@ -1,15 +1,15 @@
 from fastapi import APIRouter, HTTPException, Response
 from src.core.exceptions import NotFoundError
 from src.api.schemas.gasto_schema import GastoCreateRequest, GastoListResponse, GastoResponse, GastoUpdateRequest
-from src.services.gasto_service import criar_gasto_service, listar_gastos_service, buscar_gasto_por_id_service,  buscar_gastos_por_categoria_service,buscar_gastos_por_nome_service, buscar_gastos_por_valor_service, buscar_gastos_por_data_service, editar_gastos_service, excluir_gastos_service
+from src.services.gasto_service import criar_gastos_service, listar_gastos_service, buscar_gastos_por_id_service,  buscar_gastos_por_categoria_service,buscar_gastos_por_nome_service, buscar_gastos_por_valor_service, buscar_gastos_por_data_service, editar_gastos_service, excluir_gastos_service
 
 router = APIRouter(prefix="/gastos", tags=["Gastos"])
 
 
 @router.post("/", response_model=GastoCreateRequest, status_code=201)
-def criar_gasto_api(dados: GastoCreateRequest):
+def criar_gastos_api(dados: GastoCreateRequest):
     try:
-        gasto_criado = criar_gasto_service(dados)
+        gasto_criado = criar_gastos_service(dados)
         return gasto_criado
     except ValueError as erro:
         raise HTTPException(status_code=400, detail=str(erro))
@@ -17,12 +17,12 @@ def criar_gasto_api(dados: GastoCreateRequest):
 
 
 @router.get("/", response_model=GastoListResponse, status_code=200)
-def listar_gasto_api():
+def listar_gastos_api():
     return listar_gastos_service()
 
 
 @router.get("/categoria", response_model=GastoListResponse, status_code=200)
-def buscar_gasto_categoria_api(categoria: str):
+def buscar_gastos_categoria_api(categoria: str):
     try:
         return buscar_gastos_por_categoria_service(categoria)
     except ValueError as erro:
@@ -30,7 +30,7 @@ def buscar_gasto_categoria_api(categoria: str):
     
 
 @router.get("/nome", response_model=GastoListResponse, status_code=200)
-def buscar_gasto_por_nome_api(nome: str):
+def buscar_gastos_por_nome_api(nome: str):
     try:
         return buscar_gastos_por_nome_service(nome)
     except ValueError as erro:
@@ -59,6 +59,14 @@ def buscar_gastos_por_data_api(
         raise HTTPException(status_code=400, detail=str(erro))
 
 
+@router.get("/{id}",response_model=GastoResponse,status_code=200)
+def buscar_gastos_id_api(id: int):
+    try:
+        return buscar_gastos_por_id_service(id)
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro))
+
+
 @router.patch("/{id}", response_model=GastoResponse, status_code=200)
 def editar_gastos_api(id: int, dados: GastoUpdateRequest):
     try:
@@ -66,21 +74,11 @@ def editar_gastos_api(id: int, dados: GastoUpdateRequest):
     except NotFoundError as erro:
         raise HTTPException(status_code=404, detail=str(erro))
     except ValueError as erro:
-        raise HTTPException(status_code=400, detail=str(erro))  
-    
-
-
-@router.get("/{id}",response_model=GastoResponse,status_code=200)
-def buscar_gasto_id_api(id: int):
-    try:
-        return buscar_gasto_por_id_service(id)
-    except ValueError as erro:
-        raise HTTPException(status_code=404, detail=str(erro))
-    
+        raise HTTPException(status_code=400, detail=str(erro))   
 
 
 @router.delete("/{id}", status_code=204)
-def excluir_gasto_api(id: int):
+def excluir_gastos_api(id: int):
     try:
         excluir_gastos_service(id)
         return Response(status_code=204)
