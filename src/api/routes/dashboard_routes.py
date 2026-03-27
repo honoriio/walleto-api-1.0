@@ -27,14 +27,16 @@ def iniciar_dashboard_api():
         )
 
 
-@router.get("/status")
-def status_dashboard_api():
-    return obter_status_dashboard()
-
-
 @router.post("/encerrar")
 def encerrar_dashboard_api():
     try:
         return encerrar_dashboard()
     except Exception as erro:
         raise HTTPException(status_code=500, detail=f"Erro ao encerrar dashboard: {erro}")
+
+
+@router.get("/status")
+def status_dashboard_api():
+    return obter_status_dashboard()
+
+
