@@ -40,7 +40,7 @@ def excluir_gastos_repository(id): # exclui o gasto com base no ID informado pel
 
 
 
-def buscar_gasto_por_id_repository(id: int):
+def consultar_gasto_por_id_repository(id: int):
     """Busca um gasto no banco e retorna um objeto Gasto ou None."""
     
     with get_connection() as conn:
@@ -241,3 +241,62 @@ def filtrar_gastos_nome_repository(nome):
             for tupla in resultados
         ]
 
+
+
+
+def consultar_gastos_repository(
+    nome=None,
+    categoria=None,
+    valor_min=None,
+    valor_max=None,
+    data_inicio=None,
+    data_final=None,
+):
+    query = "SELECT * FROM gastos WHERE 1=1"
+    params = []
+
+    if nome:
+        query += " AND nome LIKE ?"
+        params.append(f"%{nome}%")
+
+    if categoria:
+        query += " AND categoria = ?"
+        params.append(categoria)
+
+    if valor_min is not None:
+        query += " AND valor >= ?"
+        params.append(str(valor_min))
+
+    if valor_max is not None:
+        query += " AND valor <= ?"
+        params.append(str(valor_max))
+
+    if data_inicio:
+        query += " AND data >= ?"
+        params.append(data_inicio)
+
+    if data_final:
+        query += " AND data <= ?"
+        params.append(data_final)
+
+    query += " ORDER BY data DESC, id DESC"
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+        resultados = cursor.fetchall()
+
+    gastos_objetos = []
+    for tupla in resultados:
+        gastos_objetos.append(
+            Gasto(
+                id=tupla[0],
+                nome=tupla[1],
+                valor=Decimal(str(tupla[2])),
+                categoria=tupla[3],
+                descricao=tupla[4],
+                data=tupla[5],
+            )
+        )
+
+    return gastos_objetos

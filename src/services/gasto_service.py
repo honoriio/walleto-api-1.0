@@ -3,8 +3,9 @@ from datetime import date
 from src.utils.date_utils import formatar_data_ISO
 from src.core.exceptions import NotFoundError
 from src.services.relatorio_service import calcular_gastos_services
-from src.repositories.gasto_repository import inserir_gasto_repository, listar_gastos_repository, buscar_gasto_por_id_repository, filtrar_gastos_categoria_repository, filtrar_gastos_nome_repository, filtrar_gasto_valor_repository, filtrar_gastos_data_repository, editar_gastos_repository, excluir_gastos_repository
+from src.repositories.gasto_repository import inserir_gasto_repository, consultar_gasto_por_id_repository, editar_gastos_repository, excluir_gastos_repository, consultar_gastos_repository
 from src.validators.gasto_validator import validar_nome_gasto, validar_valor_gasto, validar_categoria_gasto, validar_descricao_gasto, validar_data_gasto, validar_id_gasto
+
 
 def criar_gastos_service(dados) -> Gasto:
     nome = validar_nome_gasto(dados.nome)
@@ -27,103 +28,17 @@ def criar_gastos_service(dados) -> Gasto:
     return gasto_criado
 
 
-def listar_gastos_service():
-    gastos = listar_gastos_repository()
-    total = calcular_gastos_services(gastos)
-
-    return {
-        "gastos": gastos,
-        "total": total,
-        "quantidade": len(gastos)
-    }
-
-
-def buscar_gastos_por_id_service(id):
-    gasto = buscar_gasto_por_id_repository(id)
+def consultar_gastos_por_id_service(id):
+    gasto = consultar_gasto_por_id_repository(id)
     if not gasto:
         raise ValueError("Não existe gasto com esse ID")
     
     return gasto
 
 
-def buscar_gastos_por_categoria_service(categoria):
-    categoria = validar_categoria_gasto(categoria)
-    gastos = filtrar_gastos_categoria_repository(categoria)
-    total = calcular_gastos_services(gastos)
-
-    return {
-        "gastos": gastos,
-        "total": total,
-        "quantidade": len(gastos)
-    }
-
-
-def buscar_gastos_por_nome_service(nome):
-    nome = validar_nome_gasto(nome)
-    gastos = filtrar_gastos_nome_repository(nome)
-    total = calcular_gastos_services(gastos)
-
-    return {
-        "gastos": gastos,
-        "total": total,
-        "quantidade": len(gastos)
-    }
-
-
-def buscar_gastos_por_valor_service(valor_min, valor_max):
-    
-    if valor_min is None and valor_max is None:
-        raise ValueError("Informe valor_min ou valor_max")
-
-    if valor_min is not None:
-        valor_min = validar_valor_gasto(valor_min)
-
-    if valor_max is not None:
-        valor_max = validar_valor_gasto(valor_max)
-
-    if valor_min is not None and valor_max is not None:
-        if valor_min > valor_max:
-            raise ValueError("valor_min não pode ser maior que valor_max")
-
-    gastos = filtrar_gasto_valor_repository(valor_min, valor_max)
-    total = calcular_gastos_services(gastos)
-
-    return {
-        "gastos": gastos,
-        "total": total,
-        "quantidade": len(gastos)
-    }
-
-
-def buscar_gastos_por_data_service(data_inicio, data_final):
-    
-    if data_inicio is None and data_final is None:
-        raise ValueError("Informe data_inicio e data_final")
-    
-    if data_inicio is not None:
-        data_inicio = validar_data_gasto(data_inicio)
-        
-
-    if data_final is not None:
-        data_final = validar_data_gasto(data_final)
-
-    if data_inicio is not None and data_final is not None:
-        if data_inicio > data_final:
-            raise ValueError("A data inicial não pode ser maior que a data final")
-        
-    gastos = filtrar_gastos_data_repository(data_inicio, data_final)
-    total = calcular_gastos_services(gastos)
-
-    return {
-        "gastos": gastos,
-        "total": total,
-        "quantidade": len(gastos)
-    }
-    
-
 def editar_gastos_service(id: int, dados) -> Gasto:
     id = validar_id_gasto(id)
-    gasto_atual = buscar_gasto_por_id_repository(id)
+    gasto_atual = consultar_gasto_por_id_repository(id)
 
     if not gasto_atual:
         raise NotFoundError("Não existe gasto com esse ID.")
@@ -179,3 +94,42 @@ def excluir_gastos_service(id: int) -> None:
 
     if not excluido:
         raise NotFoundError("Não existe gasto com esse ID.")
+    
+
+
+def consultar_gastos_service(
+    nome=None,
+    categoria=None,
+    valor_min=None,
+    valor_max=None,
+    data_inicio=None,
+    data_final=None,
+):
+
+    if valor_min is not None and valor_max is not None:
+        if valor_min > valor_max:
+            raise ValueError("valor minimo  não pode ser maior que valor maximo")
+
+    if data_inicio and data_final:
+        data_inicio = validar_data_gasto(data_inicio)
+        data_final = validar_data_gasto(data_final)
+
+        if data_inicio > data_final:
+            raise ValueError("Data inicial não pode ser maior que data final")
+
+    gastos = consultar_gastos_repository(
+        nome=nome,
+        categoria=categoria,
+        valor_min=valor_min,
+        valor_max=valor_max,
+        data_inicio=data_inicio,
+        data_final=data_final,
+    )
+
+    total = calcular_gastos_services(gastos)
+
+    return {
+        "gastos": gastos,
+        "total": total,
+        "quantidade": len(gastos)
+    }
