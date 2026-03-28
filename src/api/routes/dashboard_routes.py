@@ -1,6 +1,4 @@
 from fastapi import APIRouter, HTTPException
-
-
 from src.infrastructure.dashboard.streamlit_dashboard import (
     encerrar_dashboard,
     obter_status_dashboard,
@@ -38,5 +36,4 @@ def encerrar_dashboard_api():
 @router.get("/status")
 def status_dashboard_api():
     return obter_status_dashboard()
-
 

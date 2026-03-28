@@ -7,7 +7,7 @@ from src.services.gasto_service import criar_gastos_service, editar_gastos_servi
 router = APIRouter(prefix="/gastos", tags=["Gastos"])
 
 
-@router.post("/", response_model=GastoCreateRequest, status_code=201)
+@router.post("/", response_model=GastoResponse, status_code=201)
 def criar_gastos_api(dados: GastoCreateRequest):
     try:
         gasto_criado = criar_gastos_service(dados)
