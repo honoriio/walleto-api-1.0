@@ -13,7 +13,8 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI()
+
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(gastos_router)
 
