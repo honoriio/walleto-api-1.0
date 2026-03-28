@@ -24,6 +24,7 @@ def consultar_gasto_api(
     categoria: str | None = None,
     valor_min: Decimal | None = None,
     valor_max: Decimal | None = None,
+    descricao: str | None = None,
     data_inicio: str | None = None,
     data_final: str | None = None,
 ):
@@ -33,11 +34,14 @@ def consultar_gasto_api(
             categoria=categoria,
             valor_min=valor_min,
             valor_max=valor_max,
+            descricao=descricao,
             data_inicio=data_inicio,
             data_final=data_final,
         )
     except FiltroInvalidoError as erro:
         raise HTTPException(status_code=400, detail=str(erro))
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro))
     except Exception:
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
 

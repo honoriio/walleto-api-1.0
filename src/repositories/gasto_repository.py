@@ -32,6 +32,7 @@ def consultar_gastos_repository(
     categoria=None,
     valor_min=None,
     valor_max=None,
+    descricao=None,
     data_inicio=None,
     data_final=None,
 ):
@@ -53,6 +54,10 @@ def consultar_gastos_repository(
     if valor_max is not None:
         query += " AND valor <= ?"
         params.append(str(valor_max))
+
+    if descricao is not None:
+        query += " AND descricao LIKE ?"
+        params.append(str(descricao))
 
     if data_inicio:
         query += " AND data >= ?"

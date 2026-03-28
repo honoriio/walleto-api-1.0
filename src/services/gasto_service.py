@@ -33,6 +33,7 @@ def consultar_gastos_service(
     categoria=None,
     valor_min=None,
     valor_max=None,
+    descricao=None,
     data_inicio=None,
     data_final=None,
 ):
@@ -44,15 +45,27 @@ def consultar_gastos_service(
         categoria = validar_categoria_gasto(categoria)
     
 
-    if valor_min is not None and valor_max is not None:
+    if valor_min is not None:
         valor_min = validar_valor_gasto(valor_min)
+
+    if valor_max is not None:
         valor_max = validar_valor_gasto(valor_max)
+
+    if valor_min is not None and valor_max is not None:
         if valor_min > valor_max:
             raise ValueError("valor minimo  não pode ser maior que valor maximo")
+        
+    
+    if descricao is not None:
+        descricao = validar_descricao_gasto(descricao)
 
-    if data_inicio and data_final:
+    if data_inicio is not None:
         data_inicio = validar_data_gasto(data_inicio)
+
+    if data_final is not None:
         data_final = validar_data_gasto(data_final)
+    
+    if data_inicio is not None and data_final is not None:
         if data_inicio > data_final:
             raise ValueError("Data inicial não pode ser maior que data final")
 
@@ -61,6 +74,7 @@ def consultar_gastos_service(
         categoria=categoria,
         valor_min=valor_min,
         valor_max=valor_max,
+        descricao=descricao,
         data_inicio=data_inicio,
         data_final=data_final,
     )

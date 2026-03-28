@@ -19,16 +19,11 @@ def validar_nome_gasto(nome: str)-> str: # --> FUNÇÃO CRIADA PARA COLETAR E VA
    return nome.strip()
             
 
-def validar_valor_gasto(valor)-> Decimal: # --> FUNÇÃO QUE COLETA, TRATA E VALIDA O VALOR DO GASTO INFORMADO PELO USUARIO
-    try:
-        valor = Decimal(valor)
-        
-        if valor <= 0:
-            raise ValueError("O valor deve ser maior que zero.")
+def validar_valor_gasto(valor: Decimal) -> Decimal:
+    if valor <= 0:
+        raise ValueError("O valor deve ser maior que zero.")
 
-        return valor
-    except InvalidOperation:
-        raise ValueError("Informe um valor numérico valido.")
+    return valor
                         
         
 
