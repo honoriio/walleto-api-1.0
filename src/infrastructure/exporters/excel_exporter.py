@@ -47,11 +47,21 @@ def normalizar_gastos(gastos):
         data_obj = None
 
         try:
-            data_obj = datetime.strptime(data, "%d/%m/%Y")
-            mes_en = data_obj.strftime("%B")
-            meses.append(meses_pt.get(mes_en, mes_en))
-        except ValueError:
-            pass
+            if isinstance(data, str):
+        
+                if "-" in data:  # formato ISO: 2026-03-28
+                    data_obj = datetime.fromisoformat(data)
+                else:  # formato BR: 28/03/2026
+                    data_obj = datetime.strptime(data, "%d/%m/%Y")
+            elif isinstance(data, datetime):
+                data_obj = data
+
+            if data_obj:
+                mes_en = data_obj.strftime("%B")
+                meses.append(meses_pt.get(mes_en, mes_en))
+
+        except Exception:
+            raise ValueError("Formato de data inválido. Use ISO (YYYY-MM-DD) ou DD/MM/AAAA.")
 
         registros_normalizados.append(
             {
