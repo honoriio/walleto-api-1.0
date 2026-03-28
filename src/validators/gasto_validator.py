@@ -3,7 +3,7 @@ from decimal import Decimal, InvalidOperation
 import re
 from datetime import date, datetime
 
-# Função refatorada, foi tirado o uso sem necessidade de try
+
 def validar_nome_gasto(nome: str)-> str: # --> FUNÇÃO CRIADA PARA COLETAR E VALIDAR NOME  | NO CASO DESTA FUÇÃO E NA COLETA DO NOME, A MESMA ACEITA QALQUER CARACTER, POIS ALGUNS ESTABELECIMENTOS USAM NUMEROS NO NOME.
    nome = nome 
 
@@ -23,8 +23,7 @@ def validar_valor_gasto(valor: Decimal) -> Decimal:
     if valor <= 0:
         raise ValueError("O valor deve ser maior que zero.")
 
-    return valor
-                        
+    return valor                
         
 
 def validar_categoria_gasto(categoria: str) -> str:
@@ -52,7 +51,6 @@ def validar_descricao_gasto(descricao) -> str:
         raise ValueError("A descrição não pode ter mais de 300 caracteres")
 
     return descricao
-
 
 
 def validar_data_gasto(data_str: str) -> date:

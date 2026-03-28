@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 
+
 @dataclass
 class Gasto:
     nome: str
@@ -10,4 +11,3 @@ class Gasto:
     descricao: str
     data: date
     id: int | None = None
-

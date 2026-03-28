@@ -18,7 +18,6 @@ def calcular_gastos_services(lista_de_gastos: list[Gasto]):
     return total
 
 
-
 def exportar_gastos_xlsx_service()-> str:
     gastos = consultar_gastos_repository()
 
@@ -28,7 +27,6 @@ def exportar_gastos_xlsx_service()-> str:
     caminho_arquivo = exportar_gastos_excel(gastos)
 
     return caminho_arquivo
-
 
 
 def exportar_gastos_pdf_services()-> str:

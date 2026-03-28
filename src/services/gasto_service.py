@@ -154,4 +154,3 @@ def excluir_gastos_service(id: int) -> None:
 
     if not excluido:
         raise NotFoundError("Não existe gasto com esse ID.")
-    

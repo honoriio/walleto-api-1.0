@@ -5,20 +5,9 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import cm
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Table,
-    TableStyle,
-    Paragraph,
-    Spacer,
-    PageBreak,
-)
-
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
 from src.core.config import PASTA_DOCUMENTOS
-from src.infrastructure.exporters.excel_exporter import (
-    normalizar_gastos,
-    calcular_resumo_gastos,
-)
+from src.infrastructure.exporters.excel_exporter import normalizar_gastos, calcular_resumo_gastos
 
 
 def formatar_moeda_brl(valor: float) -> str:

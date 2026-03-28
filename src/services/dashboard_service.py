@@ -3,7 +3,6 @@ from src.infrastructure.exporters.excel_exporter import exportar_gastos_excel
 from src.repositories.gasto_repository import consultar_gastos_repository
 
 
-
 def iniciar_dashboard_com_exportacao() -> dict:
     gastos = consultar_gastos_repository()
 

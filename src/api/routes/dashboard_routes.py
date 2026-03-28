@@ -1,8 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from src.infrastructure.dashboard.streamlit_dashboard import (
-    encerrar_dashboard,
-    obter_status_dashboard,
-)
+from src.infrastructure.dashboard.streamlit_dashboard import encerrar_dashboard, obter_status_dashboard
 from src.services.dashboard_service import iniciar_dashboard_com_exportacao
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])

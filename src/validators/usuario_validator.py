@@ -1,6 +1,7 @@
 import re 
 from datetime import date, datetime
 
+
 def nome_usuario(nome: str) -> str: 
         nome = nome.strip()
             
@@ -10,8 +11,7 @@ def nome_usuario(nome: str) -> str:
         if len(nome) >= 100: #-->  VALIDAÇÃO 2, O NOME NÃO PODE TER MAIS DE 100 CARACTERES
             raise ValueError("O nome não pode ter mais de 100 caracteres.")
 
-        return nome
-            
+        return nome 
 
 
 def validar_email_usuario(email: str) -> str:

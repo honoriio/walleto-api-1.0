@@ -8,4 +8,3 @@ def formatar_data_ISO(data_str: str) -> str: #--> Ideal  para salvar no banco de
 
 def formatar_data_brasil(data: str)-> date:  #--> Ideal para mostrar ao usuario, ja no formato brasleiro
     return datetime.datetime.strptime(data, "%d/%m/%Y").date()
-

@@ -111,6 +111,7 @@ def consultar_gasto_por_id_repository(id: int):
         )
     
 
+
 def editar_gastos_repository(gasto: Gasto) -> Gasto:
     with get_connection() as conn:
         cursor = conn.cursor()

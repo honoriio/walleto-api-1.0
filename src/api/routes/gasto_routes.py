@@ -4,6 +4,7 @@ from src.core.exceptions import NotFoundError, FiltroInvalidoError
 from src.api.schemas.gasto_schema import GastoCreateRequest, GastoListResponse, GastoResponse, GastoUpdateRequest
 from src.services.gasto_service import criar_gastos_service, editar_gastos_service, excluir_gastos_service, consultar_gastos_service, consultar_gastos_por_id_service
 
+
 router = APIRouter(prefix="/gastos", tags=["Gastos"])
 
 
@@ -44,7 +45,6 @@ def consultar_gasto_api(
         raise HTTPException(status_code=404, detail=str(erro))
     except Exception:
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
-
 
 
 @router.get("/{id}",response_model=GastoResponse,status_code=200)
