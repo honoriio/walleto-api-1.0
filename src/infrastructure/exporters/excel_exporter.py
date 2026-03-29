@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from src.core.config import PASTA_DOCUMENTOS
 
 from openpyxl import Workbook
@@ -48,13 +48,26 @@ def normalizar_gastos(gastos):
 
         try:
             if isinstance(data, str):
-        
-                if "-" in data:  # formato ISO: 2026-03-28
+                data = data.strip()
+
+                if "-" in data:
                     data_obj = datetime.fromisoformat(data)
-                else:  # formato BR: 28/03/2026
+                elif "/" in data:
                     data_obj = datetime.strptime(data, "%d/%m/%Y")
+                else:
+                    raise ValueError
+
             elif isinstance(data, datetime):
                 data_obj = data
+
+            elif isinstance(data, date):
+                data_obj = datetime.combine(data, datetime.min.time())
+
+            elif not data:
+                data_obj = None
+
+            else:
+                raise ValueError
 
             if data_obj:
                 mes_en = data_obj.strftime("%B")
@@ -68,14 +81,13 @@ def normalizar_gastos(gastos):
                 "nome": nome,
                 "valor": float(valor),
                 "categoria": categoria,
-                "data": data,
+                "data": data_obj.strftime("%d/%m/%Y") if data_obj else "",
                 "data_obj": data_obj,
                 "descricao": descricao,
             }
         )
 
     return registros_normalizados, meses
-
 
 def calcular_resumo_gastos(registros_normalizados):
     datas_validas = [

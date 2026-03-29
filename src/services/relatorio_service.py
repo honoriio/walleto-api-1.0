@@ -1,40 +1,67 @@
-from decimal import Decimal, ROUND_HALF_UP
-from src.models.gastos import Gasto
+from src.services.gasto_service import consultar_gastos_service
 from src.repositories.gasto_repository import consultar_gastos_repository
 from src.infrastructure.exporters.excel_exporter import exportar_gastos_excel
 from src.infrastructure.exporters.pdf_exporter import exportar_gastos_pdf
 
 
-def calcular_gastos_services(lista_de_gastos: list[Gasto]):
-    """Recebe uma lista de objetos Gasto e calcula o total."""
-    if not lista_de_gastos:
-        total = Decimal("0.00")
-    else:
-        total = sum(
-            Decimal(str(gasto.valor)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-            for gasto in lista_de_gastos
-        )
+def exportar_gastos_xlsx_service(
+    nome=None,
+    categoria=None,
+    valor_min=None,
+    valor_max=None,
+    descricao=None,
+    data_inicio=None,
+    data_final=None,
+):
+    resultado = consultar_gastos_service(
+        nome=nome,
+        categoria=categoria,
+        valor_min=valor_min,
+        valor_max=valor_max,
+        descricao=descricao,
+        data_inicio=data_inicio,
+        data_final=data_final,
+    )
 
-    return total
-
-
-def exportar_gastos_xlsx_service()-> str:
-    gastos = consultar_gastos_repository()
+    gastos = resultado["gastos"]
 
     if not gastos:
         raise ValueError("Não há gastos para exportação.")
 
     caminho_arquivo = exportar_gastos_excel(gastos)
 
-    return caminho_arquivo
+    return {
+        "arquivo": str(caminho_arquivo)
+    }
 
 
-def exportar_gastos_pdf_services()-> str:
-    gastos = consultar_gastos_repository()
+
+def exportar_gastos_pdf_services(
+    nome=None,
+    categoria=None,
+    valor_min=None,
+    valor_max=None,
+    descricao=None,
+    data_inicio=None,
+    data_final=None,
+):
+    resultado = consultar_gastos_service(
+        nome=nome,
+        categoria=categoria,
+        valor_min=valor_min,
+        valor_max=valor_max,
+        descricao=descricao,
+        data_inicio=data_inicio,
+        data_final=data_final,
+    )
+
+    gastos = resultado["gastos"]
 
     if not gastos:
         raise ValueError("Não há gastos para exportação.")
-    
+
     caminho_arquivo = exportar_gastos_pdf(gastos)
 
-    return caminho_arquivo
+    return {
+        "arquivo": str(caminho_arquivo)
+    }

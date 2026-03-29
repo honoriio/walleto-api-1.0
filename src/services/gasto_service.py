@@ -2,7 +2,7 @@ from src.models.gastos import Gasto
 from datetime import date
 from src.utils.date_utils import formatar_data_ISO
 from src.core.exceptions import NotFoundError
-from src.services.relatorio_service import calcular_gastos_services
+from src.utils.calcular_utils  import calcular_gastos_utils
 from src.repositories.gasto_repository import inserir_gasto_repository, consultar_gasto_por_id_repository, editar_gastos_repository, excluir_gastos_repository, consultar_gastos_repository
 from src.validators.gasto_validator import validar_nome_gasto, validar_valor_gasto, validar_categoria_gasto, validar_descricao_gasto, validar_data_gasto, validar_id_gasto
 
@@ -79,7 +79,7 @@ def consultar_gastos_service(
         data_final=data_final,
     )
 
-    total = calcular_gastos_services(gastos)
+    total = calcular_gastos_utils(gastos)
 
     return {
         "gastos": gastos,
