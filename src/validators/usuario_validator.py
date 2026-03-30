@@ -3,10 +3,15 @@ from datetime import date, datetime
 
 
 def nome_usuario(nome: str) -> str: 
+        padrao_nome = r'^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:\s[A-Za-zÀ-ÖØ-öø-ÿ]+)*$'
+
         nome = nome.strip()
             
         if not nome: # --> VALIDAÇÃO 1, VERIFICA SE A STRING ESTA VAZIA
             raise ValueError("O nome não pode estar vazio.")
+        
+        if not re.match(padrao_nome, nome):
+            raise ValueError("O nome informado não e valido.")
             
         if len(nome) >= 100: #-->  VALIDAÇÃO 2, O NOME NÃO PODE TER MAIS DE 100 CARACTERES
             raise ValueError("O nome não pode ter mais de 100 caracteres.")
@@ -34,7 +39,7 @@ def validar_sexo_usuario(sexo: str)-> str:
     if not sexo:
         raise ValueError("O sexo não pode estar vazio")
     
-    if sexo not in ["M", "F"]:
+    if sexo not in ["Masculino", "Feminino"]:
         raise ValueError("Sexo inválido. Use 'M' ou 'F'.")
     
     return sexo

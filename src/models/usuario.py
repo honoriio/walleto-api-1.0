@@ -7,6 +7,6 @@ class Usuario:
     nome: str
     email: str
     data_nascimento: date
-    sexo: str | None
-    id: int | None
-    senha_hash: int | None
+    senha_hash: str
+    sexo: str | None = None
+    id: int | None = None
