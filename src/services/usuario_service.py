@@ -13,7 +13,6 @@ def criar_usuario_service(dados) -> Usuario:
     sexo = validar_sexo_usuario(dados.sexo)
     senha_validada = validar_senha_usuario(dados.senha)
     senha_hash = gerar_hash_senha(senha_validada)
-    senha_hash = verificar_senha(senha_validada, senha_hash)
     
     novo_usuario = Usuario(
         nome=nome,
