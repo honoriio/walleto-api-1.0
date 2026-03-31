@@ -3,7 +3,7 @@ from src.models.usuario import Usuario
 from datetime import date
 from passlib.context import CryptContext
 from src.validators.usuario_validator import validar_nome_usuario, validar_email_usuario, validar_data_nascimento_usuario, validar_sexo_usuario, validar_senha_usuario, validar_id_usuario
-from src.repositories.usuario_repository import inserir_usuario_repository, excluir_usuario_repository
+from src.repositories.usuario_repository import inserir_usuario_repository, excluir_usuario_repository, consultar_usuarios_repository
 
 
 
@@ -26,6 +26,38 @@ def criar_usuario_service(dados) -> Usuario:
     usuario_criado = inserir_usuario_repository(novo_usuario)
     return usuario_criado
 
+
+def consultar_usuario_service(
+        nome=None,
+        email=None,
+        data_nascimento=None,
+        sexo=None
+):
+    
+    if nome is not None:
+        nome = validar_nome_usuario(nome)
+
+    if email is not None:
+        email = validar_email_usuario(email)
+
+    if data_nascimento is not None:
+        data_nascimento = validar_data_nascimento_usuario(data_nascimento)
+
+    if sexo is not None:
+        sexo = validar_sexo_usuario(sexo)
+
+
+    usuarios = consultar_usuarios_repository(
+        nome=nome,
+        email=email,
+        data_nascimento=data_nascimento,
+        sexo=sexo,
+    )
+
+    return {
+        "usuarios": usuarios,
+        "quantidade": len(usuarios)
+    }
 
 
 pwd_context = CryptContext(

@@ -11,6 +11,7 @@ class UsuarioCreateRequest(BaseModel):
 
 
 class UsuarioResponse(BaseModel):
+    id: int
     nome: str
     email: str 
     data_nascimento: date 
@@ -18,7 +19,8 @@ class UsuarioResponse(BaseModel):
 
 
 class UsuarioListResponse(BaseModel):
-    usuario: list[UsuarioResponse]
+    usuarios: list[UsuarioResponse]
+    quantidade: int
 
 
 class UsuarioUpdateRequest(BaseModel):

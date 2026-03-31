@@ -24,6 +24,7 @@ class GastoResponse(BaseModel):
 class GastoListResponse(BaseModel):
     gastos: list[GastoResponse]
     total: Decimal
+    quantidade: int
 
 
 

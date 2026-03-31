@@ -73,18 +73,20 @@ def consultar_usuarios_repository(
         cursor.execute(query, params)
         resultados = cursor.fetchall()
 
-    usuarios_obj = [
-        Usuario(
-            id=tupla[0],
-            nome=tupla[1],
-            email=tupla[2],
-            data_nascimento=tupla[3],
-            sexo=tupla[4],
-        )
-        for tupla in resultados
-    ]
+    usuarios = []
 
-    return usuarios_obj
+    for tupla in resultados:
+        usuarios.append(
+            {
+                "id": tupla[0],
+                "nome": tupla[1],
+                "email": tupla[2],
+                "data_nascimento": tupla[3],
+                "sexo": tupla[4],
+            }
+        )
+
+    return usuarios
 
 
 def excluir_usuario_repository(id):
