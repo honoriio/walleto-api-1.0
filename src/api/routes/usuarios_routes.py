@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Response
 from src.api.schemas.usuario_schema import UsuarioCreateRequest, UsuarioResponse, UsuarioUpdateRequest, UsuarioListResponse
 from src.core.exceptions import FiltroInvalidoError, NotFoundError
-from src.services.usuario_service import criar_usuario_service, excluir_usuario_service, consultar_usuario_service
+from src.services.usuario_service import criar_usuario_service, excluir_usuario_service, consultar_usuario_service, consultar_usuario_por_id_service
 from datetime import date
 
 
@@ -35,6 +35,18 @@ def consultar_usuarios_api(
         raise HTTPException(status_code=400, detail=str(erro))
     except ValueError as erro:
         raise HTTPException(status_code=404, detail=str(erro))
+
+
+@router.get("/{id}",response_model=UsuarioResponse,status_code=200)
+def buscar_usuario_id_api(id: int):
+    try:
+        return consultar_usuario_por_id_service(id)
+    
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro))
+    except ValueError as erro:
+        raise HTTPException(status_code=404, detail=str(erro))
+    
 
 
 @router.delete("/{id}", status_code=204)

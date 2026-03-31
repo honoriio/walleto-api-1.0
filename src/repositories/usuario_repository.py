@@ -89,6 +89,27 @@ def consultar_usuarios_repository(
     return usuarios
 
 
+def consultar_usuario_por_id_repository(id: int):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, nome, email, data_nascimento, sexo
+            FROM usuarios
+            WHERE id = ?
+        """, (id,))
+        resultado = cursor.fetchone()
+
+    if not resultado:
+        return None
+
+    return {
+        "id": resultado[0],
+        "nome": resultado[1],
+        "email": resultado[2],
+        "data_nascimento": resultado[3],
+        "sexo": resultado[4],
+    }
+
 def excluir_usuario_repository(id):
     with get_connection() as conn: 
         cursor = conn.cursor()

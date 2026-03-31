@@ -3,7 +3,7 @@ from src.models.usuario import Usuario
 from datetime import date
 from passlib.context import CryptContext
 from src.validators.usuario_validator import validar_nome_usuario, validar_email_usuario, validar_data_nascimento_usuario, validar_sexo_usuario, validar_senha_usuario, validar_id_usuario
-from src.repositories.usuario_repository import inserir_usuario_repository, excluir_usuario_repository, consultar_usuarios_repository
+from src.repositories.usuario_repository import inserir_usuario_repository, excluir_usuario_repository, consultar_usuarios_repository, consultar_usuario_por_id_repository
 
 
 
@@ -59,6 +59,13 @@ def consultar_usuario_service(
         "quantidade": len(usuarios)
     }
 
+
+def consultar_usuario_por_id_service(id):
+    usuario = consultar_usuario_por_id_repository(id)
+    if not usuario:
+        raise ValueError("Não existe usuario com esse ID")
+    
+    return usuario
 
 pwd_context = CryptContext(
     schemes=["argon2"],
