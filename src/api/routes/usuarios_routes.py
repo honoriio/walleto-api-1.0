@@ -3,7 +3,7 @@ from src.api.schemas.usuario_schema import UsuarioCreateRequest, UsuarioResponse
 from src.services.usuario_service import criar_usuario_service
 
 
-router = APIRouter(prefix="/usuário", tags=["Usuário"])
+router = APIRouter(prefix="/usuario", tags=["Usuario"])
 
 @router.post("/", response_model=UsuarioResponse, status_code=201)
 def criar_usuario_api(dados: UsuarioCreateRequest):
