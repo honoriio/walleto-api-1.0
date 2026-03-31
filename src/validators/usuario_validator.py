@@ -92,3 +92,17 @@ def validar_senha_usuario(senha: str) -> str:
         raise ValueError("A senha deve conter pelo menos um caractere especial.")
 
     return senha
+
+
+
+def validar_id_usuario(valor) -> int:
+    try:
+        numero = int(valor)
+
+        if numero <= 0:
+            raise ValueError("ID deve ser maior que zero.")
+
+        return numero
+
+    except (TypeError, ValueError):
+        raise ValueError("ID deve ser um número inteiro válido.")

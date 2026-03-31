@@ -87,11 +87,10 @@ def consultar_usuarios_repository(
     return usuarios_obj
 
 
-
-def excluir_gastos_repository(id):
+def excluir_usuario_repository(id):
     with get_connection() as conn: 
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM usuario WHERE id = ?", (id,))
+        cursor.execute("DELETE FROM usuarios WHERE id = ?", (id,))
         conn.commit()
 
         return cursor.rowcount > 0 

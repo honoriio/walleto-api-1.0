@@ -1,8 +1,9 @@
+from src.core.exceptions import NotFoundError
 from src.models.usuario import Usuario
 from datetime import date
 from passlib.context import CryptContext
-from src.validators.usuario_validator import validar_nome_usuario, validar_email_usuario, validar_data_nascimento_usuario, validar_sexo_usuario, validar_senha_usuario
-from src.repositories.usuario_repository import inserir_usuario_repository
+from src.validators.usuario_validator import validar_nome_usuario, validar_email_usuario, validar_data_nascimento_usuario, validar_sexo_usuario, validar_senha_usuario, validar_id_usuario
+from src.repositories.usuario_repository import inserir_usuario_repository, excluir_usuario_repository
 
 
 
@@ -38,3 +39,14 @@ def gerar_hash_senha(senha: str) -> str:
 
 def verificar_senha(senha: str, senha_hash: str) -> bool:
     return pwd_context.verify(senha, senha_hash)
+
+
+
+def excluir_usuario_service(id: int) -> None:
+    id = validar_id_usuario(id)
+
+
+    excluido = excluir_usuario_repository(id)
+
+    if not excluido:
+        raise NotFoundError("Não existe gasto com esse ID.")
