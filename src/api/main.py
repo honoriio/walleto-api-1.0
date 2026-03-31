@@ -5,6 +5,7 @@ from src.core.database import inicializar_banco
 from src.api.routes.dashboard_routes import router as dashboard_router
 from src.api.routes.gasto_routes import router as gastos_router
 from src.api.routes.relatorio_routes import router as relatorio_router
+from src.api.routes.usuarios_routes import router as usuarios_router
 
 
 @asynccontextmanager
@@ -15,6 +16,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.include_router(usuarios_router)
 
 app.include_router(gastos_router)
 

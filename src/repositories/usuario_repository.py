@@ -8,9 +8,8 @@ def inserir_usuario_repository(usuario: Usuario)-> Usuario:
 
         cursor.execute(
             """
-            INSERT INTO usuario (nome, email, data_nascimento, sexo, senha_hash)
+            INSERT INTO usuarios (nome, email, data_nascimento, sexo, senha_hash)
             VALUES (?, ?, ?, ?, ?)
-
             """,
             (
                 usuario.nome,
@@ -86,3 +85,13 @@ def consultar_usuarios_repository(
     ]
 
     return usuarios_obj
+
+
+
+def excluir_gastos_repository(id):
+    with get_connection() as conn: 
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM usuario WHERE id = ?", (id,))
+        conn.commit()
+
+        return cursor.rowcount > 0 

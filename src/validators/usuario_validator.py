@@ -1,8 +1,8 @@
 import re 
-from datetime import date, datetime
+from datetime import date
 
 
-def nome_usuario(nome: str) -> str: 
+def validar_nome_usuario(nome: str) -> str: 
         padrao_nome = r'^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:\s[A-Za-zÀ-ÖØ-öø-ÿ]+)*$'
 
         nome = nome.strip()
@@ -33,48 +33,62 @@ def validar_email_usuario(email: str) -> str:
     return email
         
 
-def validar_sexo_usuario(sexo: str)-> str:
+def validar_sexo_usuario(sexo: str)-> str:   # Temporario, vou arrumar uma solução melhor.
     sexo = sexo.strip().lower()
 
     if not sexo:
         raise ValueError("O sexo não pode estar vazio")
     
-    if sexo not in ["Masculino", "Feminino"]:
-        raise ValueError("Sexo inválido. Use 'M' ou 'F'.")
+    if sexo not in ["masculino", "feminino"]:
+        raise ValueError("Sexo inválido. Use 'Masculino' ou 'Feminino'.")
     
-    return sexo
+    return sexo.capitalize()
 
 
-def validar_data_nascimento_usuario(data_nascimento: str) -> date:
+def validar_data_nascimento_usuario(data_nascimento: date) -> date:
     data_atual = date.today()
-    data_nascimento = data_nascimento.strip()
 
-    if not data_nascimento:
+    if data_nascimento is None:
         raise ValueError("A data de nascimento é obrigatória.")
 
-    if len(data_nascimento) == 8 and data_nascimento.isdigit():
-        data_nascimento = f"{data_nascimento[0:2]}/{data_nascimento[2:4]}/{data_nascimento[4:8]}"
-
-    data_nascimento = (
-        data_nascimento
-        .replace(".", "/")
-        .replace("-", "/")
-        .replace("_", "/")
-    )
-
-    try:
-        data_nasc_obj = datetime.strptime(data_nascimento, "%d/%m/%Y").date()
-    except ValueError:
-        raise ValueError("Formato de data inválido ou data inexistente. Use DD/MM/AAAA.")
-
-    if data_nasc_obj > data_atual:
+    if data_nascimento > data_atual:
         raise ValueError("A data de nascimento não pode ser no futuro.")
 
-    idade = data_atual.year - data_nasc_obj.year
-    if (data_atual.month, data_atual.day) < (data_nasc_obj.month, data_nasc_obj.day):
+    idade = data_atual.year - data_nascimento.year
+    if (data_atual.month, data_atual.day) < (data_nascimento.month, data_nascimento.day):
         idade -= 1
 
     if idade > 120:
         raise ValueError("Idade inválida. Verifique a data informada.")
 
-    return data_nasc_obj
+    return data_nascimento
+
+
+def validar_senha_usuario(senha: str) -> str:
+    if not isinstance(senha, str):
+        raise ValueError("A senha deve ser uma string.")
+
+    senha = senha.strip()
+
+    if not senha:
+        raise ValueError("A senha é obrigatória.")
+
+    if len(senha) < 8:
+        raise ValueError("A senha deve ter pelo menos 8 caracteres.")
+
+    if len(senha.encode("utf-8")) > 72:
+        raise ValueError("A senha não pode ter mais de 72 bytes.")
+
+    if not re.search(r"[A-Z]", senha):
+        raise ValueError("A senha deve conter pelo menos uma letra maiúscula.")
+
+    if not re.search(r"[a-z]", senha):
+        raise ValueError("A senha deve conter pelo menos uma letra minúscula.")
+
+    if not re.search(r"\d", senha):
+        raise ValueError("A senha deve conter pelo menos um número.")
+
+    if not re.search(r"[^\w\s]", senha):
+        raise ValueError("A senha deve conter pelo menos um caractere especial.")
+
+    return senha

@@ -38,6 +38,8 @@ def criar_tabela_usuarios():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nome TEXT NOT NULL,
                 email TEXT NOT NULL UNIQUE,
+                data_nascimento TEXT NOT NULL,
+                sexo TEXT NOT NULL,
                 senha_hash TEXT NOT NULL,
                 is_active INTEGER NOT NULL DEFAULT 1,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP        
