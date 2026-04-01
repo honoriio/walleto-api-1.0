@@ -11,9 +11,9 @@ class AuthLoginResponse(BaseModel):
     email: EmailStr
 
 
-class TokenResponse():
-    pass
-
+class AuthTokenResponse(BaseModel):
+    access_token: str
+    token_type: str
 
 class RefreshTokenRequest():
     pass
