@@ -1,4 +1,20 @@
 from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
+
+# ========================
+# AUTENTICAÇÃO
+# ========================
+
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY não configurada no ambiente.")
 
 # ========================
 # BASE DO PROJETO
@@ -37,17 +53,3 @@ LOGS_DIR.mkdir(parents=True, exist_ok=True)
 # ========================
 PASTA_DOCUMENTOS = Path.home() / "Documentos"
 PASTA_DOCUMENTOS.mkdir(parents=True, exist_ok=True)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
