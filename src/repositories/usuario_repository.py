@@ -154,6 +154,7 @@ def editar_usuarios_repository(usuario: Usuario)-> Usuario:
         usuario.email,
         usuario.sexo,
         usuario.data_nascimento,
+        usuario.id,
     )
 
     with get_connection() as conn:

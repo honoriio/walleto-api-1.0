@@ -18,7 +18,7 @@ def criar_usuario_api(dados: UsuarioCreateRequest):
         raise HTTPException(status_code=400, detail=str(erro))
     
 
-@router.get("/me", response_model=UsuarioListResponse,  status_code=200, include_in_schema=False,)
+@router.get("/me", response_model=UsuarioListResponse,  status_code=200, include_in_schema=False)
 def consultar_usuarios_api(
     nome: str | None = None,
     email: str | None = None,
@@ -53,7 +53,7 @@ def editar_usuario_api(id: int, dados: UsuarioUpdateRequest, current_user: Usuar
 
 
 @router.get("/{id}",response_model=UsuarioResponse,status_code=200, include_in_schema=False)
-def cionsultar_usuario_id_api(id: int, current_user: Usuario = Depends(get_current_user)):
+def consultar_usuario_id_api(id: int, current_user: Usuario = Depends(get_current_user)):
     try:
         return consultar_usuario_por_id_service(id)
     
