@@ -99,9 +99,9 @@ def consultar_usuario_por_id_repository(id: int):
         cursor.execute(query, (id,))
         resultado = cursor.fetchone()
 
-    if not resultado:
+    if resultado is  None:
         return None
-
+    
     return Usuario(
         id=resultado["id"],
         nome=resultado["nome"],

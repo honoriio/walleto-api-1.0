@@ -107,6 +107,7 @@ def consultar_gasto_por_id_repository(id: int):
     if resultado is None:
         return None
 
+    
     return Gasto(
         id=resultado["id"],
         nome=resultado["nome"],
