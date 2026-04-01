@@ -142,3 +142,23 @@ def consultar_usuario_por_email_repository(email: str) -> UsuarioAuth | None:
         senha_hash=resultado["senha_hash"],
     )
     
+def editar_usuarios_repository(usuario: Usuario)-> Usuario:
+    query = """
+    UPDATE usuarios 
+    SET nome = ?, email = ?, sexo = ?, data_nascimento = ?
+    WHERE id = ?
+    """
+
+    params = (
+        usuario.nome, 
+        usuario.email,
+        usuario.sexo,
+        usuario.data_nascimento,
+    )
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+        conn.commit()
+    
+    return usuario

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
 from src.api.schemas.usuario_schema import UsuarioCreateRequest, UsuarioResponse, UsuarioUpdateRequest, UsuarioListResponse
-from src.core.exceptions import FiltroInvalidoError, NotFoundError
+from src.core.exceptions import ConflictError, FiltroInvalidoError, NotFoundError
 from src.models.usuario import Usuario
 from src.services.auth_service import get_current_user
-from src.services.usuario_service import criar_usuario_service, excluir_usuario_service, consultar_usuario_service, consultar_usuario_por_id_service
+from src.services.usuario_service import criar_usuario_service, excluir_usuario_service, consultar_usuario_service, consultar_usuario_por_id_service, editar_usuarios_service
 from datetime import date
 
 
@@ -38,6 +38,18 @@ def consultar_usuarios_api(
         raise HTTPException(status_code=400, detail=str(erro))
     except ValueError as erro:
         raise HTTPException(status_code=404, detail=str(erro))
+
+
+@router.patch("/{id}", response_model=UsuarioResponse, status_code=200)
+def editar_usuario_api(id: int, dados: UsuarioUpdateRequest, current_user: Usuario = Depends(get_current_user)):
+    try:
+        return editar_usuarios_service(id, dados)
+    except NotFoundError as erro:
+        raise HTTPException(status_code=404, detail=str(erro))
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro))
+    except ConflictError as erro:
+        raise HTTPException(status_code=409, detail=str(erro))
 
 
 @router.get("/{id}",response_model=UsuarioResponse,status_code=200, include_in_schema=False)
