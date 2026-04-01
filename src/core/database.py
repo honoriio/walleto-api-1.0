@@ -1,9 +1,13 @@
 import sqlite3
 from src.core.config import DB_PATH
 
-def get_connection():
+def get_connection(): # -> Função alterada para usar ROW
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    return sqlite3.connect(DB_PATH)
+
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+
+    return conn
 
 
 def inicializar_banco():

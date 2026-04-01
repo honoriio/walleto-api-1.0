@@ -4,14 +4,14 @@ from src.models.gastos import Gasto
 
 
 def inserir_gasto_repository(gasto: Gasto) -> Gasto:
+    query = """
+    INSERT INTO gastos (nome, valor, categoria, descricao, data)
+    VALUES (?, ?, ?, ?, ?)
+    """
     with get_connection() as conn:
         cursor = conn.cursor()
 
-        cursor.execute(
-            """
-            INSERT INTO gastos (nome, valor, categoria, descricao, data)
-            VALUES (?, ?, ?, ?, ?)
-            """,
+        cursor.execute(query,
             (
                 gasto.nome,
                 str(gasto.valor),
@@ -75,15 +75,15 @@ def consultar_gastos_repository(
         resultados = cursor.fetchall()
 
     gastos_objetos = []
-    for tupla in resultados:
+    for row in resultados:
         gastos_objetos.append(
             Gasto(
-                id=tupla[0],
-                nome=tupla[1],
-                valor=Decimal(str(tupla[2])),
-                categoria=tupla[3],
-                descricao=tupla[4],
-                data=tupla[5],
+                id=row["id"],
+                nome=row["nome"],
+                valor=Decimal(str(row["valor"])),
+                categoria=row["categoria"],
+                descricao=row["descricao"],
+                data=row["data"],
             )
         )
 
@@ -92,46 +92,50 @@ def consultar_gastos_repository(
 
 def consultar_gasto_por_id_repository(id: int):
     """Busca um gasto no banco e retorna um objeto Gasto ou None."""
-    
+
+    query = """
+    SELECT id, nome, valor, categoria, descricao, data
+    FROM gastos
+    WHERE id = ?
+    """
+
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, nome, valor, categoria, descricao, data FROM gastos WHERE id = ?", (id,))
+        cursor.execute(query, (id,))
         resultado = cursor.fetchone()
 
-        if not resultado:
-            return None
+    if resultado is None:
+        return None
 
-        return Gasto(
-            id=resultado[0],
-            nome=resultado[1],
-            valor=resultado[2],
-            categoria=resultado[3],
-            descricao=resultado[4],
-            data=resultado[5],
-        )
-    
+    return Gasto(
+        id=resultado["id"],
+        nome=resultado["nome"],
+        valor=Decimal(str(resultado["valor"])),
+        categoria=resultado["categoria"],
+        descricao=resultado["descricao"],
+        data=resultado["data"],
+    )
 
 
 def editar_gastos_repository(gasto: Gasto) -> Gasto:
+    query = """
+    UPDATE gastos
+    SET nome = ?, valor = ?, categoria = ?, descricao = ?, data = ?
+    WHERE id = ?
+    """
+
+    params = (
+        gasto.nome,
+        str(gasto.valor),
+        gasto.categoria,
+        gasto.descricao,
+        gasto.data,
+        gasto.id,
+    )
+
     with get_connection() as conn:
         cursor = conn.cursor()
-
-        cursor.execute(
-            """
-            UPDATE gastos
-            SET nome = ?, valor = ?, categoria = ?, descricao = ?, data = ?
-            WHERE id = ?
-            """,
-            (
-                gasto.nome,
-                str(gasto.valor),
-                gasto.categoria,
-                gasto.descricao,
-                gasto.data,
-                gasto.id,
-            ),
-        )
-
+        cursor.execute(query, params)
         conn.commit()
 
     return gasto
@@ -139,8 +143,11 @@ def editar_gastos_repository(gasto: Gasto) -> Gasto:
 
 def excluir_gastos_repository(id): # exclui o gasto com base no ID informado pelo usuario
     with get_connection() as conn: 
+        query = """
+        DELETE FROM gastos WHERE id = ?
+        """
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM gastos WHERE id = ?", (id,))
+        cursor.execute(query, (id,))
         conn.commit()
 
         return cursor.rowcount > 0 
