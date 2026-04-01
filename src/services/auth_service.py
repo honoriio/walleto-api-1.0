@@ -1,14 +1,15 @@
-from jose import jwt
+from fastapi import HTTPException, Depends, status
+from jose import jwt, JWTError
+from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from datetime import datetime, timezone, timedelta
 from src.api.schemas.auth_schema import AuthLoginRequest
-from src.repositories.usuario_repository import consultar_usuario_por_email_repository
+from src.core.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from src.repositories.usuario_repository import consultar_usuario_por_email_repository, consultar_usuario_por_id_repository
 
 
 
-SECRET_KEY = "minha-chave-super-secreta-de-teste-123456789"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 password_context = CryptContext(
@@ -61,3 +62,31 @@ def criar_access_token(data: dict) -> str:
     dados_token.update({"exp": expire})
 
     return jwt.encode(dados_token, SECRET_KEY, algorithm=ALGORITHM)
+
+
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    credenciais_invalidas = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Credenciais inválidas.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        sub = payload.get("sub")
+
+        if sub is None:
+            raise credenciais_invalidas
+
+        usuario_id = int(sub)
+
+    except (JWTError, ValueError):
+        raise credenciais_invalidas
+
+    usuario = consultar_usuario_por_id_repository(usuario_id)
+
+    if usuario is None:
+        raise credenciais_invalidas
+
+    return usuario

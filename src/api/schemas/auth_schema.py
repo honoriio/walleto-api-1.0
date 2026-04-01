@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from datetime import date
 
 class AuthLoginRequest(BaseModel):
     email: EmailStr
@@ -14,6 +15,13 @@ class AuthLoginResponse(BaseModel):
 class AuthTokenResponse(BaseModel):
     access_token: str
     token_type: str
+
+class AuthMeResponse(BaseModel):
+    id: int
+    nome: str
+    email: EmailStr
+    data_nascimento: date
+    sexo: str
 
 class RefreshTokenRequest():
     pass
