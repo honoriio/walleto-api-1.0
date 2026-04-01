@@ -16,10 +16,7 @@ def inicializar_banco():
 
 
 def criar_tabela_gastos():
-    with get_connection() as conn:
-        cursor = conn.cursor()
-
-        cursor.execute("""
+    query = """
             CREATE TABLE IF NOT EXISTS gastos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nome TEXT,
@@ -28,16 +25,15 @@ def criar_tabela_gastos():
                 descricao TEXT,
                 data TEXT
             )
-        """)
-
+        """
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(query)
         conn.commit()
 
 
 def criar_tabela_usuarios():
-    with get_connection() as conn:
-        cursor = conn.cursor()
-
-        cursor.execute("""
+    query = """
             CREATE TABLE IF NOT EXISTS usuarios (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nome TEXT NOT NULL,
@@ -48,6 +44,8 @@ def criar_tabela_usuarios():
                 is_active INTEGER NOT NULL DEFAULT 1,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP        
             )
-        """)
-
+        """
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(query)
         conn.commit()
