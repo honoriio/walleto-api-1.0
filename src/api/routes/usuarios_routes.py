@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response
 from src.api.schemas.usuario_schema import UsuarioCreateRequest, UsuarioResponse, UsuarioUpdateRequest, UsuarioListResponse
 from src.core.exceptions import FiltroInvalidoError, NotFoundError
+from src.models.usuario import Usuario
+from src.services.auth_service import get_current_user
 from src.services.usuario_service import criar_usuario_service, excluir_usuario_service, consultar_usuario_service, consultar_usuario_por_id_service
 from datetime import date
 
@@ -16,12 +18,13 @@ def criar_usuario_api(dados: UsuarioCreateRequest):
         raise HTTPException(status_code=400, detail=str(erro))
     
 
-@router.get("/", response_model=UsuarioListResponse, status_code=200)
+@router.get("/me", response_model=UsuarioListResponse,  status_code=200, include_in_schema=False,)
 def consultar_usuarios_api(
     nome: str | None = None,
     email: str | None = None,
     data_nscimento: date | None = None,
-    sexo: str | None = None
+    sexo: str | None = None,
+    current_user: Usuario = Depends(get_current_user)
 ):
     try:
         return consultar_usuario_service(
@@ -37,20 +40,20 @@ def consultar_usuarios_api(
         raise HTTPException(status_code=404, detail=str(erro))
 
 
-@router.get("/{id}",response_model=UsuarioResponse,status_code=200)
-def buscar_usuario_id_api(id: int):
+@router.get("/{id}",response_model=UsuarioResponse,status_code=200, include_in_schema=False)
+def cionsultar_usuario_id_api(id: int, current_user: Usuario = Depends(get_current_user)):
     try:
         return consultar_usuario_por_id_service(id)
     
+    except NotFoundError as erro:
+        raise HTTPException(status_code=404, detail=str(erro))
     except ValueError as erro:
         raise HTTPException(status_code=400, detail=str(erro))
-    except ValueError as erro:
-        raise HTTPException(status_code=404, detail=str(erro))
     
 
 
 @router.delete("/{id}", status_code=204)
-def excluir_usuario_api(id: int):
+def excluir_usuario_api(id: int, current_user: Usuario = Depends(get_current_user)):
     try:
         excluir_usuario_service(id)
         return Response(status_code=204)

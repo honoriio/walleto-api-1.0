@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from src.core.exceptions import FiltroInvalidoError
 from src.api.schemas.gasto_schema import GastoListResponse
 from decimal import Decimal
+from src.models.usuario import Usuario
+from src.services.auth_service import get_current_user
 from src.services.relatorio_service import exportar_gastos_xlsx_service, exportar_gastos_pdf_services
 
 
@@ -17,6 +19,7 @@ def exportar_gastos_xlsx_api(
     descricao: str | None = None,
     data_inicio: str | None = None,
     data_final: str | None = None,
+    current_user: Usuario = Depends(get_current_user)
 ):
     try:
         return exportar_gastos_xlsx_service(
@@ -46,6 +49,7 @@ def exportar_gastos_pdf_api(
     descricao: str | None = None,
     data_inicio: str | None = None,
     data_final: str | None = None,
+    current_user: Usuario = Depends(get_current_user)
 ):
     try:
         return exportar_gastos_pdf_services(

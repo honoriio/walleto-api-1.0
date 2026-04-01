@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response
 from decimal import Decimal
 from src.core.exceptions import NotFoundError, FiltroInvalidoError
 from src.api.schemas.gasto_schema import GastoCreateRequest, GastoListResponse, GastoResponse, GastoUpdateRequest
+from src.models.usuario import Usuario
+from src.services.auth_service import get_current_user
 from src.services.gasto_service import criar_gastos_service, editar_gastos_service, excluir_gastos_service, consultar_gastos_service, consultar_gastos_por_id_service
 
 
@@ -9,7 +11,7 @@ router = APIRouter(prefix="/gastos", tags=["Gastos"])
 
 
 @router.post("/", response_model=GastoResponse, status_code=201)
-def criar_gastos_api(dados: GastoCreateRequest):
+def criar_gastos_api(dados: GastoCreateRequest, current_user: Usuario = Depends(get_current_user)):
     try:
         gasto_criado = criar_gastos_service(dados)
         return gasto_criado
@@ -28,6 +30,7 @@ def consultar_gasto_api(
     descricao: str | None = None,
     data_inicio: str | None = None,
     data_final: str | None = None,
+    current_user: Usuario = Depends(get_current_user)
 ):
     try:
         return consultar_gastos_service(
@@ -48,7 +51,7 @@ def consultar_gasto_api(
 
 
 @router.get("/{id}",response_model=GastoResponse,status_code=200)
-def buscar_gastos_id_api(id: int):
+def buscar_gastos_id_api(id: int, current_user: Usuario = Depends(get_current_user)):
     try:
         return consultar_gastos_por_id_service(id)
     
@@ -61,7 +64,7 @@ def buscar_gastos_id_api(id: int):
 
 
 @router.patch("/{id}", response_model=GastoResponse, status_code=200)
-def editar_gastos_api(id: int, dados: GastoUpdateRequest):
+def editar_gastos_api(id: int, dados: GastoUpdateRequest, current_user: Usuario = Depends(get_current_user)):
     try:
         return editar_gastos_service(id, dados)
     except NotFoundError as erro:
@@ -71,7 +74,7 @@ def editar_gastos_api(id: int, dados: GastoUpdateRequest):
 
 
 @router.delete("/{id}", status_code=204)
-def excluir_gastos_api(id: int):
+def excluir_gastos_api(id: int, current_user: Usuario = Depends(get_current_user)):
     try:
         excluir_gastos_service(id)
         return Response(status_code=204)
