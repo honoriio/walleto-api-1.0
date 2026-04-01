@@ -3,14 +3,13 @@ from src.models.usuario import Usuario
 
 
 def inserir_usuario_repository(usuario: Usuario)-> Usuario:
+    query = """
+        INSERT INTO usuarios (nome, email, data_nascimento, sexo, senha_hash)
+        VALUES (?, ?, ?, ?, ?)
+    """
     with get_connection() as conn:
         cursor = conn.cursor()
-
-        cursor.execute(
-            """
-            INSERT INTO usuarios (nome, email, data_nascimento, sexo, senha_hash)
-            VALUES (?, ?, ?, ?, ?)
-            """,
+        cursor.execute(query,
             (
                 usuario.nome,
                 usuario.email,
@@ -75,45 +74,48 @@ def consultar_usuarios_repository(
 
     usuarios = []
 
-    for tupla in resultados:
+    for row in resultados:
         usuarios.append(
-            {
-                "id": tupla[0],
-                "nome": tupla[1],
-                "email": tupla[2],
-                "data_nascimento": tupla[3],
-                "sexo": tupla[4],
-            }
-        )
+            Usuario(
+                id=row["id"],
+                nome=row["nome"],
+                email=row["email"],
+                data_nascimento=row["data_nascimento"],
+                sexo=row["sexo"],
+
+        ))
 
     return usuarios
 
 
 def consultar_usuario_por_id_repository(id: int):
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
+    query = """
             SELECT id, nome, email, data_nascimento, sexo
             FROM usuarios
             WHERE id = ?
-        """, (id,))
+        """
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(query, (id,))
         resultado = cursor.fetchone()
 
     if not resultado:
         return None
 
-    return {
-        "id": resultado[0],
-        "nome": resultado[1],
-        "email": resultado[2],
-        "data_nascimento": resultado[3],
-        "sexo": resultado[4],
-    }
+    return Usuario(
+        id=resultado["id"],
+        nome=resultado["nome"],
+        email=resultado["email"],
+        data_nascimento=resultado["data_nascimento"],
+        sexo=resultado["sexo"],
+    )
+
 
 def excluir_usuario_repository(id):
+    query = "DELETE FROM usuarios WHERE id = ?"
     with get_connection() as conn: 
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM usuarios WHERE id = ?", (id,))
+        cursor.execute(query, (id,))
         conn.commit()
 
         return cursor.rowcount > 0 
