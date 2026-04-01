@@ -36,7 +36,7 @@ def consultar_gastos_repository(
     data_inicio=None,
     data_final=None,
 ):
-    query = "SELECT * FROM gastos WHERE 1=1"
+    query = "SELECT id, nome, valor, categoria, descricao, data FROM gastos WHERE 1=1"
     params = []
 
     if nome:
@@ -95,7 +95,7 @@ def consultar_gasto_por_id_repository(id: int):
     
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM gastos WHERE id = ?", (id,))
+        cursor.execute("SELECT id, nome, valor, categoria, descricao, data FROM gastos WHERE id = ?", (id,))
         resultado = cursor.fetchone()
 
         if not resultado:
