@@ -1,7 +1,6 @@
 from src.core.exceptions import NotFoundError
 from src.models.usuario import Usuario
-from datetime import date
-from passlib.context import CryptContext
+from src.services.auth_service import gerar_hash_senha
 from src.validators.usuario_validator import validar_nome_usuario, validar_email_usuario, validar_data_nascimento_usuario, validar_sexo_usuario, validar_senha_usuario, validar_id_usuario
 from src.repositories.usuario_repository import inserir_usuario_repository, excluir_usuario_repository, consultar_usuarios_repository, consultar_usuario_por_id_repository
 
@@ -67,19 +66,6 @@ def consultar_usuario_por_id_service(id):
     
     return usuario
 
-pwd_context = CryptContext(
-    schemes=["argon2"],
-    deprecated="auto"
-)
-
-def gerar_hash_senha(senha: str) -> str:
-    return pwd_context.hash(senha)
-
-
-def verificar_senha(senha: str, senha_hash: str) -> bool:
-    return pwd_context.verify(senha, senha_hash)
-
-
 
 def excluir_usuario_service(id: int) -> None:
     id = validar_id_usuario(id)
@@ -89,3 +75,4 @@ def excluir_usuario_service(id: int) -> None:
 
     if not excluido:
         raise NotFoundError("Não existe gasto com esse ID.")
+    
