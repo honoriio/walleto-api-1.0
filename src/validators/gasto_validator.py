@@ -1,5 +1,5 @@
 # área destinada as importações
-from decimal import Decimal, InvalidOperation  
+from decimal import Decimal
 import re
 from datetime import date, datetime
 

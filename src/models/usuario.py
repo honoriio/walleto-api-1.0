@@ -7,5 +7,5 @@ class Usuario:
     email: str
     data_nascimento: date
     sexo: str
-    senha_hash: str | None = None     # abalisar o que fazer, acredito que não podemos deixar isso como opcional
+    senha_hash: str | None = None  
     id: int | None = None
