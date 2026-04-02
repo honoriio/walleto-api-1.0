@@ -1,24 +1,26 @@
 from pydantic import BaseModel
 from datetime import date
 from decimal import Decimal
+from typing import Optional
 
 
 
 class GastoCreateRequest(BaseModel):
     nome: str
     valor: Decimal
-    categoria: str
-    data: date | None = None
-    descricao: str | None = None
+    categoria: Optional[str] = None
+    descricao: Optional[str] = None
+    data: Optional[date] = None
 
 
 class GastoResponse(BaseModel):
     id: int
     nome: str
     valor: Decimal
-    categoria: str
+    categoria: Optional[str]
+    descricao: Optional[str]
     data: date
-    descricao: str | None = None
+    usuario_id: int
 
 
 class GastoListResponse(BaseModel):

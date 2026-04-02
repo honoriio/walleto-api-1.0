@@ -23,7 +23,9 @@ def criar_tabela_gastos():
                 valor NUMERIC NOT NULL,
                 categoria TEXT,
                 descricao TEXT,
-                data TEXT
+                data TEXT,
+                usuario_id INTEGER NOT NULL,
+                FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
             )
         """
     with get_connection() as conn:

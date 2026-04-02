@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
+from typing import Optional
 
 
 @dataclass
@@ -10,4 +11,5 @@ class Gasto:
     categoria: str
     descricao: str
     data: date
-    id: int | None = None
+    usuario_id: int
+    id: Optional[int] = None

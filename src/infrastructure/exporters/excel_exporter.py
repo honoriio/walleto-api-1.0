@@ -6,7 +6,7 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from tqdm import tqdm
 
 
-def normalizar_gastos(gastos):
+def normalizar_gastos(  ):
     meses_pt = {
         "January": "janeiro",
         "February": "fevereiro",

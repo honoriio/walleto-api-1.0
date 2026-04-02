@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
 from src.core.exceptions import FiltroInvalidoError
-from src.api.schemas.gasto_schema import GastoListResponse
 from decimal import Decimal
 from src.models.usuario import Usuario
 from src.services.auth_service import get_current_user
@@ -23,6 +22,7 @@ def exportar_gastos_xlsx_api(
 ):
     try:
         return exportar_gastos_xlsx_service(
+            usuario_id=current_user.id,
             nome=nome,
             categoria=categoria,
             valor_min=valor_min,
@@ -36,8 +36,8 @@ def exportar_gastos_xlsx_api(
         raise HTTPException(status_code=400, detail=str(erro))
     except ValueError as erro:
         raise HTTPException(status_code=404, detail=str(erro))
-    except Exception as erro:
-        raise HTTPException(status_code=500, detail=f"Erro interno do servidor: {str(erro)}")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Erro interno do servidor")
     
 
 @router.get("/exportar/pdf", status_code=200)
@@ -53,6 +53,7 @@ def exportar_gastos_pdf_api(
 ):
     try:
         return exportar_gastos_pdf_services(
+            usuario_id=current_user.id,
             nome=nome,
             categoria=categoria,
             valor_min=valor_min,
@@ -66,6 +67,6 @@ def exportar_gastos_pdf_api(
         raise HTTPException(status_code=400, detail=str(erro))
     except ValueError as erro:
         raise HTTPException(status_code=404, detail=str(erro))
-    except Exception as erro:
-        raise HTTPException(status_code=500, detail=f"Erro interno do servidor: {str(erro)}")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Erro interno do servidor")
     

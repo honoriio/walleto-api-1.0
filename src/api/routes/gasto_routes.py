@@ -13,8 +13,7 @@ router = APIRouter(prefix="/gastos", tags=["Gastos"])
 @router.post("/", response_model=GastoResponse, status_code=201)
 def criar_gastos_api(dados: GastoCreateRequest, current_user: Usuario = Depends(get_current_user)):
     try:
-        gasto_criado = criar_gastos_service(dados)
-        return gasto_criado
+        return criar_gastos_service(dados, current_user.id)
     except ValueError as erro:
         raise HTTPException(status_code=400, detail=str(erro))
     except Exception:
@@ -22,7 +21,7 @@ def criar_gastos_api(dados: GastoCreateRequest, current_user: Usuario = Depends(
     
 
 @router.get("/", response_model=GastoListResponse, status_code=200)
-def consultar_gasto_api(
+def consultar_gastos_api(
     nome: str | None = None,
     categoria: str | None = None,
     valor_min: Decimal | None = None,
@@ -34,6 +33,7 @@ def consultar_gasto_api(
 ):
     try:
         return consultar_gastos_service(
+            usuario_id=current_user.id,
             nome=nome,
             categoria=categoria,
             valor_min=valor_min,
@@ -45,20 +45,19 @@ def consultar_gasto_api(
     except FiltroInvalidoError as erro:
         raise HTTPException(status_code=400, detail=str(erro))
     except ValueError as erro:
-        raise HTTPException(status_code=404, detail=str(erro))
+        raise HTTPException(status_code=400, detail=str(erro))
     except Exception:
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
 
 
-@router.get("/{id}",response_model=GastoResponse,status_code=200)
+@router.get("/{id}", response_model=GastoResponse, status_code=200)
 def buscar_gastos_id_api(id: int, current_user: Usuario = Depends(get_current_user)):
     try:
-        return consultar_gastos_por_id_service(id)
-    
+        return consultar_gastos_por_id_service(id, current_user.id)
+    except NotFoundError as erro:
+        raise HTTPException(status_code=404, detail=str(erro))
     except ValueError as erro:
         raise HTTPException(status_code=400, detail=str(erro))
-    except ValueError as erro:
-        raise HTTPException(status_code=404, detail=str(erro))
     except Exception:
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
 
@@ -66,20 +65,23 @@ def buscar_gastos_id_api(id: int, current_user: Usuario = Depends(get_current_us
 @router.patch("/{id}", response_model=GastoResponse, status_code=200)
 def editar_gastos_api(id: int, dados: GastoUpdateRequest, current_user: Usuario = Depends(get_current_user)):
     try:
-        return editar_gastos_service(id, dados)
+        return editar_gastos_service(id, dados, current_user.id)
     except NotFoundError as erro:
         raise HTTPException(status_code=404, detail=str(erro))
     except ValueError as erro:
-        raise HTTPException(status_code=400, detail=str(erro))   
-
+        raise HTTPException(status_code=400, detail=str(erro))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Erro interno do servidor")
 
 @router.delete("/{id}", status_code=204)
 def excluir_gastos_api(id: int, current_user: Usuario = Depends(get_current_user)):
     try:
-        excluir_gastos_service(id)
+        excluir_gastos_service(id, current_user.id)
         return Response(status_code=204)
     except NotFoundError as erro:
-        raise HTTPException(status_code=400, detail=str(erro))
-    except ValueError as erro:
         raise HTTPException(status_code=404, detail=str(erro))
+    except ValueError as erro:
+        raise HTTPException(status_code=400, detail=str(erro))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Erro interno do servidor")
     
