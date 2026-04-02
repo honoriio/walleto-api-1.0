@@ -18,10 +18,7 @@ def iniciar_dashboard_api(current_user: Usuario = Depends(get_current_user)):
     except RuntimeError as erro:
         raise HTTPException(status_code=500, detail=str(erro))
     except Exception:
-        raise HTTPException(
-        status_code=500,
-        detail="Erro interno ao iniciar dashboard",
-        )
+        raise HTTPException(status_code=500, detail="Erro interno ao iniciar dashboard")
 
 
 @router.post("/encerrar")

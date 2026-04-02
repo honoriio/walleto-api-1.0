@@ -120,15 +120,16 @@ def carregar_dados_excel(caminho_arquivo: str | Path) -> pd.DataFrame:
         raise FileNotFoundError(f"Arquivo XLSX não encontrado: {caminho_arquivo}")
 
     df = pd.read_excel(caminho_arquivo, sheet_name=NOME_PLANILHA)
-    validar_colunas_obrigatorias(df)
 
+    validar_colunas_obrigatorias(df)
+    
     df = df[df["Nome"] != "TOTAL"].copy()
     df["Valor"] = pd.to_numeric(df["Valor"], errors="coerce")
-    df["Data"] = pd.to_datetime(df["Data"], errors="coerce")
+    df["Data"] = pd.to_datetime(df["Data"], errors="coerce", dayfirst=True)
     df["Categoria"] = df["Categoria"].fillna("Sem categoria")
     df["Descrição"] = df["Descrição"].fillna("")
-
     df = df.dropna(subset=["Valor", "Data"])
+
     return df
 
 
@@ -301,7 +302,7 @@ def iniciar_dashboard(
     caminho_script: str | Path | None = None,
     porta: int = PORTA_PADRAO,
     abrir_navegador: bool = True,
-) -> dict:
+    ) -> dict:
     caminho_arquivo = Path(caminho_arquivo).expanduser().resolve()
     caminho_script_resolvido = obter_caminho_script_dashboard(caminho_script)
 
