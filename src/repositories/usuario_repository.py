@@ -1,29 +1,44 @@
+import logging
+import sqlite3
+
 from src.core.database import get_connection
 from src.models.usuario import Usuario
 from src.models.usuario_auth import UsuarioAuth
 
+logger = logging.getLogger(__name__)
 
-def inserir_usuario_repository(usuario: Usuario)-> Usuario:
+def inserir_usuario_repository(usuario: Usuario) -> Usuario:
     query = """
         INSERT INTO usuarios (nome, email, data_nascimento, sexo, senha_hash)
         VALUES (?, ?, ?, ?, ?)
     """
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query,
-            (
-                usuario.nome,
-                usuario.email,
-                usuario.data_nascimento,
-                usuario.sexo,
-                usuario.senha_hash,
-            ),
-        )
 
-        conn.commit()
-        usuario.id = cursor.lastrowid
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                query,
+                (
+                    usuario.nome,
+                    usuario.email,
+                    usuario.data_nascimento,
+                    usuario.sexo,
+                    usuario.senha_hash,
+                ),
+            )
 
-    return usuario
+            conn.commit()
+            usuario.id = cursor.lastrowid
+
+        return usuario
+
+    except sqlite3.IntegrityError:
+        logger.warning("Erro de integridade ao inserir usuário - email=%s", usuario.email)
+        raise
+
+    except sqlite3.Error:
+        logger.exception("Erro de banco ao inserir usuário - email=%s", usuario.email)
+        raise
 
 
 def consultar_usuario_por_id_repository(id: int):

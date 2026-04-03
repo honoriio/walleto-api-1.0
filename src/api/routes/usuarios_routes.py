@@ -2,9 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from src.api.schemas.usuario_schema import UsuarioCreateRequest, UsuarioResponse, UsuarioUpdateRequest
 from src.core.exceptions import ConflictError, NotFoundError
 from src.models.usuario import Usuario
+import logging
 from src.services.auth_service import get_current_user
 from src.services.usuario_service import criar_usuario_service, excluir_usuario_service, consultar_usuario_por_id_service, editar_usuario_service
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/usuario", tags=["Usuario"])
 
@@ -15,7 +17,9 @@ def criar_usuario_api(dados: UsuarioCreateRequest):
         return usuario_criado
     except ValueError as erro:
         raise HTTPException(status_code=400, detail=str(erro))
-
+    except Exception:
+        logger.exception("Erro inesperado na rota de criação de usuário")
+        raise HTTPException(status_code=500, detail="Erro interno do servidor.")
 
 @router.get("/me", response_model=UsuarioResponse, status_code=200)
 def consultar_meu_usuario_api(current_user: Usuario = Depends(get_current_user)):

@@ -1,3 +1,5 @@
+import logging
+import sqlite3
 from src.core.exceptions import ConflictError, NotFoundError
 from src.models.usuario import Usuario
 from src.services.auth_service import gerar_hash_senha
@@ -5,6 +7,7 @@ from src.api.schemas.usuario_schema import UsuarioUpdateRequest
 from src.validators.usuario_validator import validar_nome_usuario, validar_email_usuario, validar_data_nascimento_usuario, validar_sexo_usuario, validar_senha_usuario, validar_id_usuario
 from src.repositories.usuario_repository import consultar_usuario_por_email_repository, inserir_usuario_repository, excluir_usuario_repository, consultar_usuario_por_id_repository, editar_usuario_repository
 
+logger = logging.getLogger(__name__)
 
 
 def criar_usuario_service(dados) -> Usuario:
@@ -14,19 +17,41 @@ def criar_usuario_service(dados) -> Usuario:
     sexo = validar_sexo_usuario(dados.sexo)
     senha_validada = validar_senha_usuario(dados.senha)
     senha_hash = gerar_hash_senha(senha_validada)
-    
+
     novo_usuario = Usuario(
         nome=nome,
         email=email,
         data_nascimento=data_nascimento,
         sexo=sexo,
-        senha_hash=senha_hash
+        senha_hash=senha_hash,
     )
 
-    usuario_criado = inserir_usuario_repository(novo_usuario)
-    return usuario_criado
+    try:
+        usuario_criado = inserir_usuario_repository(novo_usuario)
 
+        logger.info(
+            "POST /usuarios - usuário criado - usuario_id=%s email=%s",
+            usuario_criado.id,
+            usuario_criado.email,
+        )
 
+        return usuario_criado
+
+    except sqlite3.IntegrityError:
+        logger.warning(
+            "Falha ao criar usuário - email já cadastrado - email=%s",
+            email,
+        )
+        raise ValueError("Email já cadastrado.")
+
+    except Exception:
+        logger.exception(
+            "Erro inesperado ao criar usuário - email=%s",
+            email,
+        )
+        raise
+
+    
 def consultar_usuario_por_id_service(id):
     usuario = consultar_usuario_por_id_repository(id)
     if not usuario:
