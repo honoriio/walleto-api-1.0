@@ -20,6 +20,14 @@ def login_usuario_api(dados_login: AuthLoginRequest):
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")
     
 
-@router.get("/me",response_model=AuthMeResponse ,status_code=200)
+@router.get("/me", response_model=AuthMeResponse, status_code=200)
 def buscar_usuario_logado_api(current_user=Depends(get_current_user)):
-    return current_user
+    logger.info("Requisição de usuário autenticado - usuario_id=%s", current_user.id)
+
+    try:
+        return current_user
+
+    except Exception:
+        logger.exception(
+            "Erro ao buscar usuário autenticado - usuario_id=%s", current_user.id,)
+        raise HTTPException(status_code=500, detail="Erro interno do servidor.")
