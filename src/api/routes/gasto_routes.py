@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, logger
 from decimal import Decimal
 from src.core.exceptions import NotFoundError, FiltroInvalidoError
 from src.api.schemas.gasto_schema import GastoCreateRequest, GastoListResponse, GastoResponse, GastoUpdateRequest
@@ -50,16 +50,21 @@ def consultar_gastos_api(
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
 
 
-@router.get("/{id}", response_model=GastoResponse, status_code=200)
-def buscar_gastos_id_api(id: int, current_user: Usuario = Depends(get_current_user)):
+@router.get("/{gasto_id}")
+def buscar_gasto_por_id_api(gasto_id: int, usuario_logado=Depends(get_current_user)):
     try:
-        return consultar_gastos_por_id_service(id, current_user.id)
-    except NotFoundError as erro:
-        raise HTTPException(status_code=404, detail=str(erro))
-    except ValueError as erro:
-        raise HTTPException(status_code=400, detail=str(erro))
+        return consultar_gastos_por_id_service(gasto_id, usuario_logado.id)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception:
-        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+        logger.exception(
+            "Erro inesperado ao buscar gasto por id - usuario_id=%s gasto_id=%s",
+            usuario_logado.id,
+            gasto_id,
+        )
+        raise HTTPException(status_code=500, detail="Erro interno do servidor.")
 
 
 @router.patch("/{id}", response_model=GastoResponse, status_code=200)

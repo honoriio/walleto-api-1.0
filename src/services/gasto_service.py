@@ -1,3 +1,5 @@
+from fastapi import logger
+
 from src.models.gastos import Gasto
 from datetime import date
 from src.utils.date_utils import formatar_data_ISO
@@ -92,13 +94,21 @@ def consultar_gastos_service(
     }
 
 
-def consultar_gastos_por_id_service(id, usuario_id: int):
-    id = validar_id_gasto(id)
-    gasto = consultar_gasto_por_id_repository(id, usuario_id)
+def consultar_gastos_por_id_service(gasto_id: int, usuario_id: int):
+    gasto = consultar_gasto_por_id_repository(gasto_id)
 
     if not gasto:
-        raise NotFoundError("Não existe gasto com esse ID")
-    
+        raise ValueError("Gasto não encontrado.")
+
+    if gasto.usuario_id != usuario_id:
+        logger.warning(
+            "Acesso negado - usuario_id=%s tentou acessar gasto_id=%s dono_id=%s",
+            usuario_id,
+            gasto_id,
+            gasto.usuario_id,
+        )
+        raise PermissionError("Acesso negado.")
+
     return gasto
 
 

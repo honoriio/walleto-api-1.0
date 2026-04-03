@@ -1,5 +1,6 @@
 from fastapi import HTTPException, Depends, status
 from jose import jwt, JWTError
+import logging
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from datetime import datetime, timezone, timedelta
@@ -7,7 +8,7 @@ from src.api.schemas.auth_schema import AuthLoginRequest
 from src.core.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from src.repositories.usuario_repository import consultar_usuario_por_email_repository, consultar_usuario_por_id_repository
 
-
+logger = logging.getLogger(__name__)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -30,6 +31,7 @@ def login_service(dados_login: AuthLoginRequest):
     usuario_auth = consultar_usuario_por_email_repository(dados_login.email)
 
     if not usuario_auth:
+        logger.warning("Falha de login - usuário Não encontrado - email=%s", dados_login.email)
         raise ValueError("Não existe usuario com este email.")
     
     senha_valida = verificar_senha(
@@ -38,6 +40,7 @@ def login_service(dados_login: AuthLoginRequest):
     )
 
     if not senha_valida:
+        logger.warning("Falha de login - senha inválida - email=%s usuario_id=%s", usuario_auth.email, usuario_auth.id)
         raise ValueError("Email ou senha inválidos.")
     
     access_token = criar_access_token(
@@ -46,6 +49,8 @@ def login_service(dados_login: AuthLoginRequest):
             "email": usuario_auth.email,
         }
     )
+
+    logger.info("Login realizado com sucesso - usuario_id=%s email=%s", usuario_auth.id, usuario_auth.email)
 
     return {
         "access_token": access_token,
@@ -66,27 +71,46 @@ def criar_access_token(data: dict) -> str:
 
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
-    credenciais_invalidas = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Credenciais inválidas.",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         sub = payload.get("sub")
 
         if sub is None:
-            raise credenciais_invalidas
+            logger.warning("Token inválido - claim 'sub' ausente")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token inválido.",
+            )
 
         usuario_id = int(sub)
+        usuario = consultar_usuario_por_id_repository(usuario_id)
 
-    except (JWTError, ValueError):
-        raise credenciais_invalidas
+        if usuario is None:
+            logger.warning("Token inválido - usuário não encontrado - usuario_id=%s", usuario_id)
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token inválido.",
+            )
 
-    usuario = consultar_usuario_por_id_repository(usuario_id)
+        return usuario
 
-    if usuario is None:
-        raise credenciais_invalidas
-
-    return usuario
+    except JWTError:
+        logger.warning("Token inválido - falha ao decodificar JWT")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido.",
+        )
+    except ValueError:
+        logger.warning("Token inválido - sub em formato inválido")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido.",
+        )
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Erro inesperado ao validar token")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro interno do servidor.",
+        )
