@@ -3,7 +3,7 @@ from src.models.usuario import Usuario
 from src.services.auth_service import gerar_hash_senha
 from src.api.schemas.usuario_schema import UsuarioUpdateRequest
 from src.validators.usuario_validator import validar_nome_usuario, validar_email_usuario, validar_data_nascimento_usuario, validar_sexo_usuario, validar_senha_usuario, validar_id_usuario
-from src.repositories.usuario_repository import consultar_usuario_por_email_repository, inserir_usuario_repository, excluir_usuario_repository, consultar_usuarios_repository, consultar_usuario_por_id_repository, editar_usuarios_repository
+from src.repositories.usuario_repository import consultar_usuario_por_email_repository, inserir_usuario_repository, excluir_usuario_repository, consultar_usuario_por_id_repository, editar_usuario_repository
 
 
 
@@ -27,39 +27,6 @@ def criar_usuario_service(dados) -> Usuario:
     return usuario_criado
 
 
-def consultar_usuario_service(
-        nome=None,
-        email=None,
-        data_nascimento=None,
-        sexo=None
-):
-    
-    if nome is not None:
-        nome = validar_nome_usuario(nome)
-
-    if email is not None:
-        email = validar_email_usuario(email)
-
-    if data_nascimento is not None:
-        data_nascimento = validar_data_nascimento_usuario(data_nascimento)
-
-    if sexo is not None:
-        sexo = validar_sexo_usuario(sexo)
-
-
-    usuarios = consultar_usuarios_repository(
-        nome=nome,
-        email=email,
-        data_nascimento=data_nascimento,
-        sexo=sexo,
-    )
-
-    return {
-        "usuarios": usuarios,
-        "quantidade": len(usuarios)
-    }
-
-
 def consultar_usuario_por_id_service(id):
     usuario = consultar_usuario_por_id_repository(id)
     if not usuario:
@@ -78,7 +45,7 @@ def excluir_usuario_service(id: int) -> None:
         raise NotFoundError("Não existe gasto com esse ID.")
     
 
-def editar_usuarios_service(id: int, dados: UsuarioUpdateRequest) -> Usuario:
+def editar_usuario_service(id: int, dados: UsuarioUpdateRequest) -> Usuario:
     id = validar_id_usuario(id)
     usuario_atual = consultar_usuario_por_id_repository(id)
 
@@ -122,4 +89,4 @@ def editar_usuarios_service(id: int, dados: UsuarioUpdateRequest) -> Usuario:
         sexo=sexo_final,
     )
 
-    return editar_usuarios_repository(usuario_editado)
+    return editar_usuario_repository(usuario_editado)
