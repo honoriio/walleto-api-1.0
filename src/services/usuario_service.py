@@ -5,7 +5,7 @@ from src.models.usuario import Usuario
 from src.services.auth_service import gerar_hash_senha
 from src.api.schemas.usuario_schema import UsuarioUpdateRequest
 from src.validators.usuario_validator import validar_nome_usuario, validar_email_usuario, validar_data_nascimento_usuario, validar_sexo_usuario, validar_senha_usuario, validar_id_usuario
-from src.repositories.usuario_repository import consultar_usuario_por_email_repository, inserir_usuario_repository, excluir_usuario_repository, consultar_usuario_por_id_repository, editar_usuario_repository
+from src.repositories.usuario_repository import consultar_usuario_por_email_repository, excluir_usuario_repository, inserir_usuario_repository, desativar_usuario_repository, consultar_usuario_por_id_repository, editar_usuario_repository
 
 logger = logging.getLogger(__name__)
 
@@ -29,26 +29,16 @@ def criar_usuario_service(dados) -> Usuario:
     try:
         usuario_criado = inserir_usuario_repository(novo_usuario)
 
-        logger.info(
-            "POST /usuarios - usuário criado - usuario_id=%s email=%s",
-            usuario_criado.id,
-            usuario_criado.email,
-        )
+        logger.info("POST /usuarios - usuário criado - usuario_id=%s email=%s", usuario_criado.id, usuario_criado.email)
 
         return usuario_criado
 
     except sqlite3.IntegrityError:
-        logger.warning(
-            "Falha ao criar usuário - email já cadastrado - email=%s",
-            email,
-        )
+        logger.warning("Falha ao criar usuário - email já cadastrado - email=%s",email)
         raise ValueError("Email já cadastrado.")
 
     except Exception:
-        logger.exception(
-            "Erro inesperado ao criar usuário - email=%s",
-            email,
-        )
+        logger.exception("Erro inesperado ao criar usuário - email=%s",email)
         raise
 
     
@@ -60,14 +50,37 @@ def consultar_usuario_por_id_service(id):
     return usuario
 
 
-def excluir_usuario_service(id: int) -> None:
-    id = validar_id_usuario(id)
+def desativar_usuario_service(id: int) -> None: # Preciso fazer alterações nas nomeclaturas
+    usuario_id = validar_id_usuario(id) 
+
+    atualizado = desativar_usuario_repository(usuario_id)
+
+    if not atualizado:
+        logger.warning(f"Tentativa de desativar usuário inexistente - usuario_id: {usuario_id}")
+        raise NotFoundError("Usuário não encontrado.")
+    
+    logger.info(f"Usuário desativado com sucesso - usuario_id: {usuario_id}")
 
 
-    excluido = excluir_usuario_repository(id)
+def excluir_usuario_service(usuario_id: int) -> None:  # Preciso fazer a implementação desta função /// Preciso fazer a implementação disto aqui tambem. 
+    usuario_id = validar_id_usuario(usuario_id)
 
-    if not excluido:
-        raise NotFoundError("Não existe gasto com esse ID.")
+    try:
+        excluido = excluir_usuario_repository(usuario_id)
+
+        if not excluido:
+            logger.warning(f"Tentativa de excluir usuário inexistente - usuario_id: {usuario_id}")
+            raise NotFoundError("Usuário não encontrado.")
+
+        logger.info(f"Usuário excluído com sucesso - usuario_id: {usuario_id}")
+
+    except sqlite3.IntegrityError:
+        logger.warning(f"Tentativa de excluir usuário com dependências (gastos vinculados) - usuario_id: {usuario_id}")
+        raise ValueError("Não é possível excluir usuário com gastos vinculados.")
+
+    except Exception:
+        logger.exception(f"Erro inesperado ao excluir usuário - usuario_id: {usuario_id}")
+        raise
     
 
 def editar_usuario_service(id: int, dados: UsuarioUpdateRequest) -> Usuario:

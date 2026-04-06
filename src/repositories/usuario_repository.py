@@ -1,44 +1,30 @@
-import logging
-import sqlite3
-
 from src.core.database import get_connection
 from src.models.usuario import Usuario
 from src.models.usuario_auth import UsuarioAuth
 
-logger = logging.getLogger(__name__)
 
 def inserir_usuario_repository(usuario: Usuario) -> Usuario:
     query = """
         INSERT INTO usuarios (nome, email, data_nascimento, sexo, senha_hash)
         VALUES (?, ?, ?, ?, ?)
     """
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+        query,
+        (
+            usuario.nome,
+            usuario.email,
+            usuario.data_nascimento,
+            usuario.sexo,
+            usuario.senha_hash,
+            ),
+        )
 
-    try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                query,
-                (
-                    usuario.nome,
-                    usuario.email,
-                    usuario.data_nascimento,
-                    usuario.sexo,
-                    usuario.senha_hash,
-                ),
-            )
-
-            conn.commit()
-            usuario.id = cursor.lastrowid
+        conn.commit()
+        usuario.id = cursor.lastrowid
 
         return usuario
-
-    except sqlite3.IntegrityError:
-        logger.warning("Erro de integridade ao inserir usuário - email=%s", usuario.email)
-        raise
-
-    except sqlite3.Error:
-        logger.exception("Erro de banco ao inserir usuário - email=%s", usuario.email)
-        raise
 
 
 def consultar_usuario_por_id_repository(id: int):
@@ -64,8 +50,18 @@ def consultar_usuario_por_id_repository(id: int):
     )
 
 
-def excluir_usuario_repository(id):
-    query = "DELETE FROM usuarios WHERE id = ?"
+def desativar_usuario_repository(id):  # Função apenas desativa o usuario, mantendo o usuario com seus dados e com dados sobre os gastos.
+    query = "UPDATE usuarios SET is_active = 0 WHERE id = 1;"  
+    with get_connection() as conn: 
+        cursor = conn.cursor()
+        cursor.execute(query, (id,))
+        conn.commit()
+
+        return cursor.rowcount > 0 
+    
+
+def excluir_usuario_repository(id): # Função criada para excluir usuario com gatos, usando metodo cascade. /// A função ainda não esta em uso. 
+    query = "FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE"
     with get_connection() as conn: 
         cursor = conn.cursor()
         cursor.execute(query, (id,))

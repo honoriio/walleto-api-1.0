@@ -78,6 +78,7 @@ def editar_gastos_api(id: int, dados: GastoUpdateRequest, current_user: Usuario 
     except Exception:
         raise HTTPException(status_code=500, detail="Erro interno do servidor")
 
+
 @router.delete("/{id}", status_code=204)
 def excluir_gastos_api(id: int, current_user: Usuario = Depends(get_current_user)):
     try:
