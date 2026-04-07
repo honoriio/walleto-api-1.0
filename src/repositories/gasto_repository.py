@@ -1,7 +1,9 @@
+import logging
 from src.core.database import get_connection
 from decimal import Decimal
 from src.models.gastos import Gasto
 
+logger = logging.getLogger(__name__)
 
 def inserir_gasto_repository(gasto: Gasto) -> Gasto:
     query = """

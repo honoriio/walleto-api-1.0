@@ -1,16 +1,31 @@
-from fastapi import logger
-
-from src.models.gastos import Gasto
+import logging
 from datetime import date
-from src.utils.date_utils import formatar_data_ISO
-from src.core.exceptions import NotFoundError, FiltroInvalidoError
-from src.utils.calcular_utils  import calcular_gastos_utils
+
 from src.api.schemas.gasto_schema import GastoCreateRequest, GastoUpdateRequest
-from src.repositories.gasto_repository import inserir_gasto_repository, consultar_gasto_por_id_repository, editar_gastos_repository, excluir_gastos_repository, consultar_gastos_repository
-from src.validators.gasto_validator import validar_nome_gasto, validar_valor_gasto, validar_categoria_gasto, validar_descricao_gasto, validar_data_gasto, validar_id_gasto
+from src.core.exceptions import FiltroInvalidoError, NotFoundError
+from src.models.gastos import Gasto
+from src.repositories.gasto_repository import (
+    consultar_gasto_por_id_repository,
+    consultar_gastos_repository,
+    editar_gastos_repository,
+    excluir_gastos_repository,
+    inserir_gasto_repository,
+)
+from src.utils.calcular_utils import calcular_gastos_utils
+from src.utils.date_utils import formatar_data_ISO
+from src.validators.gasto_validator import (
+    validar_categoria_gasto,
+    validar_data_gasto,
+    validar_descricao_gasto,
+    validar_id_gasto,
+    validar_nome_gasto,
+    validar_valor_gasto,
+)
+
+logger = logging.getLogger(__name__)
 
 
-def criar_gastos_service(dados: GastoCreateRequest, usuario_id: int):
+def criar_gastos_service(dados: GastoCreateRequest, usuario_id: int) -> Gasto:
     nome = validar_nome_gasto(dados.nome)
     valor = validar_valor_gasto(dados.valor)
     categoria = validar_categoria_gasto(dados.categoria)
@@ -25,12 +40,12 @@ def criar_gastos_service(dados: GastoCreateRequest, usuario_id: int):
         categoria=categoria,
         descricao=descricao,
         data=data_iso,
-        usuario_id=usuario_id
+        usuario_id=usuario_id,
     )
 
     gasto_criado = inserir_gasto_repository(novo_gasto)
-
     return gasto_criado
+
 
 def consultar_gastos_service(
     usuario_id: int,
@@ -42,13 +57,11 @@ def consultar_gastos_service(
     data_inicio=None,
     data_final=None,
 ):
-
     if nome is not None:
         nome = validar_nome_gasto(nome)
 
     if categoria is not None:
         categoria = validar_categoria_gasto(categoria)
-    
 
     if valor_min is not None:
         valor_min = validar_valor_gasto(valor_min)
@@ -58,9 +71,10 @@ def consultar_gastos_service(
 
     if valor_min is not None and valor_max is not None:
         if valor_min > valor_max:
-            raise FiltroInvalidoError("valor minimo  não pode ser maior que valor maximo")
-        
-    
+            raise FiltroInvalidoError(
+                "Valor mínimo não pode ser maior que valor máximo."
+            )
+
     if descricao is not None:
         descricao = validar_descricao_gasto(descricao)
 
@@ -69,10 +83,12 @@ def consultar_gastos_service(
 
     if data_final is not None:
         data_final = validar_data_gasto(data_final)
-    
+
     if data_inicio is not None and data_final is not None:
         if data_inicio > data_final:
-            raise FiltroInvalidoError("Data inicial não pode ser maior que data final")
+            raise FiltroInvalidoError(
+                "Data inicial não pode ser maior que data final."
+            )
 
     gastos = consultar_gastos_repository(
         usuario_id=usuario_id,
@@ -90,19 +106,20 @@ def consultar_gastos_service(
     return {
         "gastos": gastos,
         "total": total,
-        "quantidade": len(gastos)
+        "quantidade": len(gastos),
     }
 
 
-def consultar_gastos_por_id_service(gasto_id: int, usuario_id: int):
+def consultar_gastos_por_id_service(gasto_id: int, usuario_id: int) -> Gasto:
+    gasto_id = validar_id_gasto(gasto_id)
     gasto = consultar_gasto_por_id_repository(gasto_id)
 
     if not gasto:
-        raise ValueError("Gasto não encontrado.")
+        raise NotFoundError("Gasto não encontrado.")
 
     if gasto.usuario_id != usuario_id:
         logger.warning(
-            "Acesso negado - usuario_id=%s tentou acessar gasto_id=%s dono_id=%s",
+            "Acesso negado | usuario_id=%s | gasto_id=%s | dono_id=%s",
             usuario_id,
             gasto_id,
             gasto.usuario_id,
@@ -112,9 +129,13 @@ def consultar_gastos_por_id_service(gasto_id: int, usuario_id: int):
     return gasto
 
 
-def editar_gastos_service(id: int, dados: GastoUpdateRequest, usuario_id: int) -> Gasto:
-    id = validar_id_gasto(id)
-    gasto_atual = consultar_gasto_por_id_repository(id, usuario_id)
+def editar_gastos_service(
+    gasto_id: int,
+    dados: GastoUpdateRequest,
+    usuario_id: int,
+) -> Gasto:
+    gasto_id = validar_id_gasto(gasto_id)
+    gasto_atual = consultar_gasto_por_id_repository(gasto_id, usuario_id)
 
     if not gasto_atual:
         raise NotFoundError("Não existe gasto com esse ID.")
@@ -150,23 +171,21 @@ def editar_gastos_service(id: int, dados: GastoUpdateRequest, usuario_id: int) -
     )
 
     gasto_editado = Gasto(
-        id=id,
+        id=gasto_id,
         nome=nome_final,
         valor=valor_final,
         categoria=categoria_final,
         descricao=descricao_final,
         data=data_final,
-        usuario_id=usuario_id
+        usuario_id=usuario_id,
     )
 
     return editar_gastos_repository(gasto_editado)
 
 
-
-def excluir_gastos_service(id: int, usuario_id: int) -> None:
-    id = validar_id_gasto(id)
-
-    excluido = excluir_gastos_repository(id, usuario_id)
+def excluir_gastos_service(gasto_id: int, usuario_id: int) -> None:
+    gasto_id = validar_id_gasto(gasto_id)
+    excluido = excluir_gastos_repository(gasto_id, usuario_id)
 
     if not excluido:
         raise NotFoundError("Não existe gasto com esse ID.")
