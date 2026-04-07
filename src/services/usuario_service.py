@@ -45,7 +45,7 @@ def criar_usuario_service(dados) -> Usuario:
 def consultar_usuario_por_id_service(id):
     usuario = consultar_usuario_por_id_repository(id)
     if not usuario:
-        raise ValueError("Não existe usuario com esse ID")
+        raise NotFoundError("Usuário não encontrado.")
     
     return usuario
 
@@ -84,8 +84,8 @@ def excluir_usuario_service(usuario_id: int) -> None:  # Preciso fazer a impleme
     
 
 def editar_usuario_service(id: int, dados: UsuarioUpdateRequest) -> Usuario:
-    id = validar_id_usuario(id)
-    usuario_atual = consultar_usuario_por_id_repository(id)
+    usuario_id = validar_id_usuario(id)
+    usuario_atual = consultar_usuario_por_id_repository(usuario_id)
 
     if not usuario_atual:
         raise NotFoundError("Não existe usuário com esse id.")
@@ -100,7 +100,7 @@ def editar_usuario_service(id: int, dados: UsuarioUpdateRequest) -> Usuario:
         email_validado = validar_email_usuario(dados.email)
         usuario_com_mesmo_email = consultar_usuario_por_email_repository(email_validado)
 
-        if usuario_com_mesmo_email and usuario_com_mesmo_email.id != id:
+        if usuario_com_mesmo_email and usuario_com_mesmo_email.id != usuario_id:
             raise ConflictError("Já existe um usuário com esse email.")
 
         email_final = email_validado
@@ -120,7 +120,7 @@ def editar_usuario_service(id: int, dados: UsuarioUpdateRequest) -> Usuario:
     )
 
     usuario_editado = Usuario(
-        id=id,
+        usuario_id=usuario_id,
         nome=nome_final,
         email=email_final,
         data_nascimento=data_nascimento_final,

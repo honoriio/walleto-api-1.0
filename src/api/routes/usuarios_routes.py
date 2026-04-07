@@ -10,59 +10,116 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/usuario", tags=["Usuario"])
 
+
 @router.post("/", response_model=UsuarioResponse, status_code=201)
 def criar_usuario_api(dados: UsuarioCreateRequest):
+    logger.info(f"Tentativa de criação de novo usuário | email={dados.email}")
     try:
         usuario_criado = criar_usuario_service(dados)
+        logger.info(f"Usuário criado com sucesso | usuario_id={usuario_criado.id}")
         return usuario_criado
+
     except ValueError as erro:
+        logger.warning(f"Falha na criação de usuário por validação | email={dados.email} | erro={erro}")
         raise HTTPException(status_code=400, detail=str(erro))
+
     except Exception:
-        logger.exception("Erro inesperado na rota de criação de usuário")
+        logger.exception(f"Erro inesperado ao criar usuário | email={dados.email}")
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")
 
 
+#Consulta os dados do usuario logado
 @router.get("/me", response_model=UsuarioResponse, status_code=200)
 def consultar_meu_usuario_api(current_user: Usuario = Depends(get_current_user)):
+    logger.info(f"Usuário ID {current_user.id} solicitou seus próprios dados.")
     try:
-        return consultar_usuario_por_id_service(current_user.id)
+        usuario = consultar_usuario_por_id_service(current_user.id)
+        logger.debug(f"Dados recuperados com sucesso para o ID {current_user.id}")
+        return usuario
 
     except NotFoundError as erro:
+        logger.warning(f"Inconsistência: Usuário autenticado {current_user.id} não encontrado no banco. Erro: {erro}")
         raise HTTPException(status_code=404, detail=str(erro))
+        
     except ValueError as erro:
+        logger.error(f"Erro de validação para o usuário {current_user.id}: {erro}")
         raise HTTPException(status_code=400, detail=str(erro))
+        
+    except Exception as e:
+        logger.exception(f"Erro inesperado ao consultar perfil do usuário {current_user.id}")
+        raise HTTPException(status_code=500, detail="Erro interno no servidor")
 
 
+# Atualiza os dados do usuario logado, como, nome, data de nascimento, sexo e email.  em breve irei adicionar uma função de validar o email via codigo, para facilitar a troca do email e da senha
 @router.patch("/me", response_model=UsuarioResponse, status_code=200)
 def editar_usuario_api(dados: UsuarioUpdateRequest, current_user: Usuario = Depends(get_current_user)):
+    campos_atualizados = dados.dict(exclude_unset=True)
+    campos_atualizados.pop("senha", None)
+
+    logger.info(f"Atualização de usuário iniciada | usuario_id={current_user.id} | campos={list(campos_atualizados.keys())}")
     try:
-        return editar_usuario_service(current_user.id, dados)
+        usuario_atualizado = editar_usuario_service(current_user.id, dados)
+        logger.info(f"Dados do usuário atualizados com sucesso | usuario_id={current_user.id}")
+        return usuario_atualizado
+
     except NotFoundError as erro:
+        logger.warning(f"Usuário não encontrado para atualização | usuario_id={current_user.id} | erro={erro}")
         raise HTTPException(status_code=404, detail=str(erro))
+
     except ValueError as erro:
+        logger.warning(f"Falha de validação ao atualizar usuário | usuario_id={current_user.id} | erro={erro}")
         raise HTTPException(status_code=400, detail=str(erro))
+
     except ConflictError as erro:
+        logger.warning(f"Conflito ao atualizar usuário | usuario_id={current_user.id} | erro={erro}")
         raise HTTPException(status_code=409, detail=str(erro))
+
+    except Exception:
+        logger.exception(f"Erro inesperado ao atualizar usuário | usuario_id={current_user.id}")
+        raise HTTPException(status_code=500, detail="Erro interno do servidor.")
     
 
-@router.patch("/me/desativar", status_code=204, include_in_schema=False) #///A mesma esta desativada do painel do sweger  # Desativa o usuario o usuario logado apenas, o mesmo pode ser reativado depois, isso vai ser usado em uma feature futura
-def desativar_usuario_api(current_user: Usuario = Depends(get_current_user)):# preciso melhorar os erros e adicionar logs
+# Desativa a conta do usuário autenticado.
+# Será usada futuramente no fluxo de exclusão com prazo de reativação.
+def desativar_usuario_api(current_user: Usuario = Depends(get_current_user)):
+    logger.info(f"Desativação de conta do usuário iniciada | usuario_id={current_user.id}")
     try:
         desativar_usuario_service(current_user.id)
+        logger.info(f"Conta desativada com sucesso | usuario_id={current_user.id}")
         return Response(status_code=204)
-    except NotFoundError as erro:
-        raise HTTPException(status_code=404, detail=str(erro))
+
     except ValueError as erro:
+        logger.warning(f"Falha de validação ao desativar conta | usuario_id={current_user.id} | erro={erro}")
         raise HTTPException(status_code=400, detail=str(erro))
+
+    except NotFoundError as erro:
+        logger.warning(f"Usuário não encontrado para desativação | usuario_id={current_user.id} | erro={erro}")
+        raise HTTPException(status_code=404, detail=str(erro))
+
+    except Exception:
+        logger.exception(f"Erro inesperado ao desativar conta | usuario_id={current_user.id}")
+        raise HTTPException(status_code=500, detail="Erro interno do servidor.")
+
     
 
+# Função que exlui permanentemente o usuario, com isso, os gastos do usuario e seus dados tambem serão escluidos. 
 @router.delete("/me", status_code=204)
 def excluir_usuario_api(current_user: Usuario = Depends(get_current_user)):
+    logger.info(f"Exclusão da conta do usuário iniciada | usuario_id={current_user.id}")
     try:
         excluir_usuario_service(current_user.id)
+        logger.info(f"Conta do usuário excluida com sucesso | usuario_id={current_user.id}")
         return Response(status_code=204)
-    except NotFoundError as erro:
-        raise HTTPException(status_code=404, detail=str(erro))
+    
     except ValueError as erro:
+        logger.warning(f"Falha de validação ao excluir conta | usuario_id={current_user.id} | erro={erro}")
         raise HTTPException(status_code=400, detail=str(erro))
+    
+    except NotFoundError as erro:
+        logger.warning(f"Usuário não encontrado para exclusão | usuario_id={current_user.id} | erro={erro}")
+        raise HTTPException(status_code=404, detail=str(erro))
+    
+    except Exception:
+        logger.exception(f"Erro inesperado ao excluir conta | usuario_id={current_user.id}")
+        raise HTTPException(status_code=500, detail="Erro interno do servidor.")
     
