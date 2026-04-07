@@ -5,7 +5,7 @@ from src.models.usuario import Usuario
 from src.services.auth_service import get_current_user
 from src.services.dashboard_service import iniciar_dashboard_com_exportacao
 
-logger = logging.GetLogger(__name__)
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 

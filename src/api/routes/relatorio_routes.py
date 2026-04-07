@@ -1,14 +1,19 @@
+import logging
+from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException
 from src.core.exceptions import FiltroInvalidoError
-from decimal import Decimal
 from src.models.usuario import Usuario
 from src.services.auth_service import get_current_user
-from src.services.relatorio_service import exportar_gastos_xlsx_service, exportar_gastos_pdf_services
+from src.services.relatorio_service import (
+    exportar_gastos_pdf_services,
+    exportar_gastos_xlsx_service,
+)
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/relatorios", tags=["Relatorios"])
 
-    
+
 @router.get("/exportar/xlsx", status_code=200)
 def exportar_gastos_xlsx_api(
     nome: str | None = None,
@@ -18,10 +23,12 @@ def exportar_gastos_xlsx_api(
     descricao: str | None = None,
     data_inicio: str | None = None,
     data_final: str | None = None,
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user),
 ):
+    logger.info("Exportação de gastos em xlsx iniciada | usuario_id=%s", current_user.id)
+
     try:
-        return exportar_gastos_xlsx_service(
+        resultado = exportar_gastos_xlsx_service(
             usuario_id=current_user.id,
             nome=nome,
             categoria=categoria,
@@ -32,13 +39,31 @@ def exportar_gastos_xlsx_api(
             data_final=data_final,
         )
 
+        logger.info("Exportação de gastos em xlsx concluída com sucesso | usuario_id=%s", current_user.id)
+        return resultado
+
     except FiltroInvalidoError as erro:
+        logger.warning(
+            "Falha na exportação de gastos em xlsx por filtro inválido | usuario_id=%s | nome=%s | categoria=%s | valor_min=%s | valor_max=%s | data_inicio=%s | data_final=%s | erro=%s",
+            current_user.id,
+            nome,
+            categoria,
+            valor_min,
+            valor_max,
+            data_inicio,
+            data_final,
+            erro,
+        )
         raise HTTPException(status_code=400, detail=str(erro))
+
     except ValueError as erro:
-        raise HTTPException(status_code=404, detail=str(erro))
+        logger.warning("Falha na exportação de gastos em xlsx por validação | usuario_id=%s | erro=%s", current_user.id, erro)
+        raise HTTPException(status_code=400, detail=str(erro))
+
     except Exception:
-        raise HTTPException(status_code=500, detail="Erro interno do servidor")
-    
+        logger.exception("Erro inesperado ao exportar gastos em xlsx | usuario_id=%s", current_user.id)
+        raise HTTPException(status_code=500, detail="Erro interno do servidor.")
+
 
 @router.get("/exportar/pdf", status_code=200)
 def exportar_gastos_pdf_api(
@@ -49,10 +74,12 @@ def exportar_gastos_pdf_api(
     descricao: str | None = None,
     data_inicio: str | None = None,
     data_final: str | None = None,
-    current_user: Usuario = Depends(get_current_user)
+    current_user: Usuario = Depends(get_current_user),
 ):
+    logger.info("Exportação de gastos em pdf iniciada | usuario_id=%s", current_user.id)
+
     try:
-        return exportar_gastos_pdf_services(
+        resultado = exportar_gastos_pdf_services(
             usuario_id=current_user.id,
             nome=nome,
             categoria=categoria,
@@ -63,10 +90,28 @@ def exportar_gastos_pdf_api(
             data_final=data_final,
         )
 
+        logger.info("Exportação de gastos em pdf concluída com sucesso | usuario_id=%s", current_user.id)
+        return resultado
+
     except FiltroInvalidoError as erro:
+        logger.warning(
+            "Falha na exportação de gastos em pdf por filtro inválido | usuario_id=%s | nome=%s | categoria=%s | valor_min=%s | valor_max=%s | data_inicio=%s | data_final=%s | erro=%s",
+            current_user.id,
+            nome,
+            categoria,
+            valor_min,
+            valor_max,
+            data_inicio,
+            data_final,
+            erro,
+        )
         raise HTTPException(status_code=400, detail=str(erro))
+
     except ValueError as erro:
-        raise HTTPException(status_code=404, detail=str(erro))
+        logger.warning("Falha na exportação de gastos em pdf por validação | usuario_id=%s | erro=%s", current_user.id, erro)
+        raise HTTPException(status_code=400, detail=str(erro))
+
     except Exception:
-        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+        logger.exception("Erro inesperado ao exportar gastos em pdf | usuario_id=%s", current_user.id)
+        raise HTTPException(status_code=500, detail="Erro interno do servidor.")
     
