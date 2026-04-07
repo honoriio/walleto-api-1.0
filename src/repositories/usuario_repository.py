@@ -51,23 +51,24 @@ def consultar_usuario_por_id_repository(id: int):
 
 
 def desativar_usuario_repository(id):  # Função apenas desativa o usuario, mantendo o usuario com seus dados e com dados sobre os gastos.
-    query = "UPDATE usuarios SET is_active = 0 WHERE id = 1;"  
+    query = "UPDATE usuarios SET is_active = 0 WHERE id = ?"  
     with get_connection() as conn: 
         cursor = conn.cursor()
-        cursor.execute(query, (id,))
+        cursor.execute(query, (id))
         conn.commit()
 
         return cursor.rowcount > 0 
     
 
-def excluir_usuario_repository(id): # Função criada para excluir usuario com gatos, usando metodo cascade. /// A função ainda não esta em uso. 
-    query = "FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE"
-    with get_connection() as conn: 
+def excluir_usuario_repository(id: int) -> bool:
+    query = "DELETE FROM usuarios WHERE id = ?"
+
+    with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(query, (id,))
         conn.commit()
 
-        return cursor.rowcount > 0 
+        return cursor.rowcount > 0
     
 
 
