@@ -1,6 +1,8 @@
 import logging
 from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import Request
+from src.core.rate_limiter import limiter
 from src.api.schemas.gasto_schema import (
     GastoCreateRequest,
     GastoListResponse,
@@ -24,14 +26,9 @@ router = APIRouter(prefix="/gastos", tags=["Gastos"])
 
 
 @router.post("/", response_model=GastoResponse, status_code=201)
-def criar_gastos_api(
-    dados: GastoCreateRequest,
-    current_user: Usuario = Depends(get_current_user),
-):
-    logger.info(
-        "Criação de gasto iniciada | usuario_id=%s",
-        current_user.id,
-    )
+@limiter.limit("10/minute")
+def criar_gastos_api(request: Request, dados: GastoCreateRequest, current_user: Usuario = Depends(get_current_user),):
+    logger.info("Criação de gasto iniciada | usuario_id=%s", current_user.id,)
 
     try:
         gasto_usuario = criar_gastos_service(dados, current_user.id)
@@ -60,7 +57,9 @@ def criar_gastos_api(
 
 
 @router.get("/", response_model=GastoListResponse, status_code=200)
+@limiter.limit("30/minute")
 def consultar_gastos_api(
+    request: Request,
     nome: str | None = None,
     categoria: str | None = None,
     valor_min: Decimal | None = None,
@@ -128,7 +127,9 @@ def consultar_gastos_api(
 
 
 @router.get("/{gasto_id}", response_model=GastoResponse, status_code=200)
+@limiter.limit("30/minute")
 def buscar_gasto_por_id_api(
+    request: Request,
     gasto_id: int,
     current_user: Usuario = Depends(get_current_user),
 ):
@@ -176,7 +177,9 @@ def buscar_gasto_por_id_api(
 
 
 @router.patch("/{gasto_id}", response_model=GastoResponse, status_code=200)
+@limiter.limit("10/minute")
 def editar_gastos_api(
+    request: Request,
     gasto_id: int,
     dados: GastoUpdateRequest,
     current_user: Usuario = Depends(get_current_user),
@@ -225,7 +228,9 @@ def editar_gastos_api(
 
 
 @router.delete("/{gasto_id}", status_code=204)
+@limiter.limit("5/minute")
 def excluir_gastos_api(
+    request: Request,
     gasto_id: int,
     current_user: Usuario = Depends(get_current_user),
 ):
