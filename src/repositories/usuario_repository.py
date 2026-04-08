@@ -60,12 +60,12 @@ def desativar_usuario_repository(id):  # Função apenas desativa o usuario, man
         return cursor.rowcount > 0 
     
 
-def excluir_usuario_repository(id: int) -> bool:
+def excluir_usuario_repository(usuario_id: int) -> bool:
     query = "DELETE FROM usuarios WHERE id = ?"
 
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(query, (id,))
+        cursor.execute(query, (usuario_id,))
         conn.commit()
 
         return cursor.rowcount > 0

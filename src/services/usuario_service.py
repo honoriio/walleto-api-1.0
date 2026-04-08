@@ -50,19 +50,43 @@ def consultar_usuario_por_id_service(id):
     return usuario
 
 
-def desativar_usuario_service(id: int) -> None: # Preciso fazer alterações nas nomeclaturas
+def desativar_usuario_service(usuario_id: int) -> None: 
+    """
+    Desativa um usuário após solicitação de exclusão da conta.
+
+    Regras atuais:
+    - Valida o ID do usuário.
+    - Marca o usuário como inativo (is_active = 0).
+    - Retorna erro caso o usuário não exista.
+
+    Implementações futuras:
+    - Registrar a data da solicitação de exclusão.
+    - Permitir reativação da conta dentro de um prazo.
+    - Excluir permanentemente após 30 dias.
+    """
+
     usuario_id = validar_id_usuario(id) 
 
     atualizado = desativar_usuario_repository(usuario_id)
 
     if not atualizado:
-        logger.warning(f"Tentativa de desativar usuário inexistente - usuario_id: {usuario_id}")
+        logger.warning("Tentativa de desativar usuário inexistente - usuario_id:=%s",usuario_id)
         raise NotFoundError("Usuário não encontrado.")
     
-    logger.info(f"Usuário desativado com sucesso - usuario_id: {usuario_id}")
+    logger.info("Usuário desativado com sucesso - usuario_id=%s", usuario_id)
 
 
-def excluir_usuario_service(usuario_id: int) -> None:  # Preciso fazer a implementação desta função /// Preciso fazer a implementação disto aqui tambem. 
+def excluir_usuario_service(usuario_id: int) -> None:
+    """
+    Exclui um usuário do sistema.
+
+    Regras:
+    - Remove o usuário permanentemente do banco.
+    - Todos os gastos relacionados são removidos automaticamente (cascade).
+
+    Levanta:
+    - ValueError: caso o usuário não exista.
+    """
     usuario_id = validar_id_usuario(usuario_id)
 
     try:
@@ -84,6 +108,19 @@ def excluir_usuario_service(usuario_id: int) -> None:  # Preciso fazer a impleme
     
 
 def editar_usuario_service(id: int, dados: UsuarioUpdateRequest) -> Usuario:
+    """
+    Edita os dados do usuário autenticado.
+
+    Regras:
+    - Utiliza o ID do usuário autenticado recebido pela rota.
+    - Valida os dados enviados para atualização.
+    - Atualiza somente os campos informados.
+    - Retorna os dados atualizados.
+
+    Observação:
+    - O controle de autenticação é realizado na camada de rota.
+    """
+
     usuario_id = validar_id_usuario(id)
     usuario_atual = consultar_usuario_por_id_repository(usuario_id)
 
