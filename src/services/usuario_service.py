@@ -37,8 +37,8 @@ def criar_usuario_service(dados) -> Usuario:
         logger.warning("Falha ao criar usuário - email já cadastrado - email=%s",email)
         raise ValueError("Email já cadastrado.")
 
-    except Exception:
-        logger.exception("Erro inesperado ao criar usuário - email=%s",email)
+    except Exception as erro:
+        logger.exception("Erro inesperado ao criar usuário - email=%s - erro:=%s",email, erro)
         raise
 
     
