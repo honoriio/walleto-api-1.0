@@ -3,6 +3,8 @@ from src.api.schemas.usuario_schema import UsuarioCreateRequest, UsuarioResponse
 from src.core.exceptions import ConflictError, NotFoundError
 from src.models.usuario import Usuario
 import logging
+from fastapi import Request
+from src.core.rate_limiter import limiter
 from src.services.auth_service import get_current_user
 from src.services.usuario_service import criar_usuario_service, desativar_usuario_service, excluir_usuario_service, consultar_usuario_por_id_service, editar_usuario_service
 
@@ -12,7 +14,8 @@ router = APIRouter(prefix="/usuario", tags=["Usuario"])
 
 
 @router.post("/", response_model=UsuarioResponse, status_code=201)
-def criar_usuario_api(dados: UsuarioCreateRequest):
+@limiter.limit("3/minute")
+def criar_usuario_api(request: Request, dados: UsuarioCreateRequest):
     logger.info(f"Tentativa de criação de novo usuário | email={dados.email}")
     try:
         usuario_criado = criar_usuario_service(dados)
@@ -52,7 +55,8 @@ def consultar_meu_usuario_api(current_user: Usuario = Depends(get_current_user))
 
 # Atualiza os dados do usuario logado, como, nome, data de nascimento, sexo e email.  em breve irei adicionar uma função de validar o email via codigo, para facilitar a troca do email e da senha
 @router.patch("/me", response_model=UsuarioResponse, status_code=200)
-def editar_usuario_api(dados: UsuarioUpdateRequest, current_user: Usuario = Depends(get_current_user)):
+@limiter.limit("10/minute")
+def editar_usuario_api(request: Request, dados: UsuarioUpdateRequest, current_user: Usuario = Depends(get_current_user)):
     campos_atualizados = dados.dict(exclude_unset=True)
     campos_atualizados.pop("senha", None)
 
@@ -79,8 +83,9 @@ def editar_usuario_api(dados: UsuarioUpdateRequest, current_user: Usuario = Depe
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")
     
 
-# Desativa a conta do usuário autenticado.
-# Será usada futuramente no fluxo de exclusão com prazo de reativação.
+# Desativa a conta do usuário autenticado (soft delete).
+# Será utilizada no fluxo de exclusão com período de reativação antes da remoção definitiva.
+# Observação: funcionalidade ainda não exposta como rota na API.
 def desativar_usuario_api(current_user: Usuario = Depends(get_current_user)):
     logger.info(f"Desativação de conta do usuário iniciada | usuario_id={current_user.id}")
     try:
@@ -102,9 +107,11 @@ def desativar_usuario_api(current_user: Usuario = Depends(get_current_user)):
 
     
 
-# Função que exlui permanentemente o usuario, com isso, os gastos do usuario e seus dados tambem serão escluidos. 
+# Exclui permanentemente a conta do usuário autenticado.
+# Os dados relacionados, como os gastos, também são removidos automaticamente via cascade. 
 @router.delete("/me", status_code=204)
-def excluir_usuario_api(current_user: Usuario = Depends(get_current_user)):
+@limiter.limit("1/hour")
+def excluir_usuario_api(request: Request, current_user: Usuario = Depends(get_current_user)):
     logger.info(f"Exclusão da conta do usuário iniciada | usuario_id={current_user.id}")
     try:
         excluir_usuario_service(current_user.id)
