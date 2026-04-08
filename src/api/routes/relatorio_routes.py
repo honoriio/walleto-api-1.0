@@ -3,6 +3,8 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException
 from src.core.exceptions import FiltroInvalidoError
 from src.models.usuario import Usuario
+from fastapi import Request
+from src.core.rate_limiter import limiter
 from src.services.auth_service import get_current_user
 from src.services.relatorio_service import (
     exportar_gastos_pdf_services,
@@ -15,7 +17,9 @@ router = APIRouter(prefix="/relatorios", tags=["Relatorios"])
 
 
 @router.get("/exportar/xlsx", status_code=200)
+@limiter.limit("15/hour")
 def exportar_gastos_xlsx_api(
+    request: Request,
     nome: str | None = None,
     categoria: str | None = None,
     valor_min: Decimal | None = None,
@@ -66,7 +70,9 @@ def exportar_gastos_xlsx_api(
 
 
 @router.get("/exportar/pdf", status_code=200)
+@limiter.limit("15/hour")
 def exportar_gastos_pdf_api(
+    request: Request,
     nome: str | None = None,
     categoria: str | None = None,
     valor_min: Decimal | None = None,
