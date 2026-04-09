@@ -157,7 +157,7 @@ def editar_usuario_service(id: int, dados: UsuarioUpdateRequest) -> Usuario:
     )
 
     usuario_editado = Usuario(
-        usuario_id=usuario_id,
+        id=usuario_id,
         nome=nome_final,
         email=email_final,
         data_nascimento=data_nascimento_final,
