@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: walleto_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: walleto_user
+      POSTGRES_PASSWORD: walleto_pass
+      POSTGRES_DB: walleto_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: walleto_api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: walleto_db
+      DB_USER: walleto_user
+      DB_PASSWORD: walleto_pass
+
+volumes:
+  postgres_data:

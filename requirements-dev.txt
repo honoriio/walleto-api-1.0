@@ -1,0 +1,5 @@
+pytest
+pytest-mock
+pip-tools
+pipreqs
+build
