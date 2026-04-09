@@ -17,12 +17,14 @@ def get_connection():
 def criar_tabela_usuarios(cursor):
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS usuarios (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            nome VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL UNIQUE,
-            senha_hash TEXT NOT NULL,
-            is_active BOOLEAN NOT NULL DEFAULT TRUE,
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+        nome VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        data_nascimento DATE NOT NULL,
+        sexo VARCHAR(20) NOT NULL,
+        senha_hash TEXT NOT NULL,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
     """)
 

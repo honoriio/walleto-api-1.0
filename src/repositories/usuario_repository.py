@@ -6,41 +6,46 @@ from src.models.usuario_auth import UsuarioAuth
 def inserir_usuario_repository(usuario: Usuario) -> Usuario:
     query = """
         INSERT INTO usuarios (nome, email, data_nascimento, sexo, senha_hash)
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s)
+        RETURNING id
     """
+
     with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-        query,
-        (
-            usuario.nome,
-            usuario.email,
-            usuario.data_nascimento,
-            usuario.sexo,
-            usuario.senha_hash,
-            ),
-        )
+        with conn.cursor() as cursor:
+            cursor.execute(
+                query,
+                (
+                    usuario.nome,
+                    usuario.email,
+                    usuario.data_nascimento,
+                    usuario.sexo,
+                    usuario.senha_hash,
+                ),
+            )
 
-        conn.commit()
-        usuario.id = cursor.lastrowid
+            resultado = cursor.fetchone()
+            conn.commit()
 
-        return usuario
+            usuario.id = resultado["id"]
+
+    return usuario
 
 
-def consultar_usuario_por_id_repository(id: int):
+def consultar_usuario_por_id_repository(usuario_id: int):
     query = """
-            SELECT id, nome, email, data_nascimento, sexo
-            FROM usuarios
-            WHERE id = ?
-        """
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query, (id,))
-        resultado = cursor.fetchone()
+        SELECT id, nome, email, data_nascimento, sexo
+        FROM usuarios
+        WHERE id = %s
+    """
 
-    if resultado is  None:
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(query, (usuario_id,))
+            resultado = cursor.fetchone()
+
+    if resultado is None:
         return None
-    
+
     return Usuario(
         id=resultado["id"],
         nome=resultado["nome"],
@@ -49,38 +54,45 @@ def consultar_usuario_por_id_repository(id: int):
         sexo=resultado["sexo"],
     )
 
-
-def desativar_usuario_repository(id):  # Função apenas desativa o usuario, mantendo o usuario com seus dados e com dados sobre os gastos.
-    query = "UPDATE usuarios SET is_active = 0 WHERE id = ?"  
-    with get_connection() as conn: 
-        cursor = conn.cursor()
-        cursor.execute(query, (id))
-        conn.commit()
-
-        return cursor.rowcount > 0 
-    
-
-def excluir_usuario_repository(usuario_id: int) -> bool:
-    query = "DELETE FROM usuarios WHERE id = ?"
+def desativar_usuario_repository(usuario_id: int) -> bool:
+    query = """
+        UPDATE usuarios
+        SET is_active = FALSE
+        WHERE id = %s AND is_active = TRUE
+    """
 
     with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query, (usuario_id,))
-        conn.commit()
+        with conn.cursor() as cursor:
+            cursor.execute(query, (usuario_id,))
+            conn.commit()
+
+            return cursor.rowcount > 0
+    
+
+# Esta função exclui o usuario, e a mesma esta com cascade on, isso faz com que, ao excluir um usuario, os seus gastos são excluidos juntos.
+def excluir_usuario_repository(usuario_id: int) -> bool:
+    query = "DELETE FROM usuarios WHERE id = %s"
+
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(query, (usuario_id,))
+            conn.commit()
 
         return cursor.rowcount > 0
     
 
-
+#Consulta usuarios por id, porem, somente usuarios ativados.
 def consultar_usuario_por_email_repository(email: str) -> UsuarioAuth | None:
     query = """
-    SELECT id, email, senha_hash FROM usuarios WHERE email = ?
+        SELECT id, email, senha_hash 
+        FROM usuarios 
+        WHERE email = %s AND is_active = TRUE
     """
 
     with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query, (email,))
-        resultado = cursor.fetchone()
+        with conn.cursor() as cursor:
+            cursor.execute(query, (email,))
+            resultado = cursor.fetchone()
 
     if resultado is None:
         return None
@@ -90,16 +102,17 @@ def consultar_usuario_por_email_repository(email: str) -> UsuarioAuth | None:
         email=resultado["email"],
         senha_hash=resultado["senha_hash"],
     )
+
     
-def editar_usuario_repository(usuario: Usuario)-> Usuario:
+def editar_usuario_repository(usuario: Usuario) -> Usuario | None:
     query = """
-    UPDATE usuarios 
-    SET nome = ?, email = ?, sexo = ?, data_nascimento = ?
-    WHERE id = ?
+        UPDATE usuarios 
+        SET nome = %s, email = %s, sexo = %s, data_nascimento = %s
+        WHERE id = %s AND is_active = TRUE
     """
 
     params = (
-        usuario.nome, 
+        usuario.nome,
         usuario.email,
         usuario.sexo,
         usuario.data_nascimento,
@@ -107,8 +120,11 @@ def editar_usuario_repository(usuario: Usuario)-> Usuario:
     )
 
     with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query, params)
-        conn.commit()
-    
+        with conn.cursor() as cursor:
+            cursor.execute(query, params)
+            conn.commit()
+
+            if cursor.rowcount == 0:
+                return None
+
     return usuario
