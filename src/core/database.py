@@ -1,55 +1,51 @@
-import sqlite3
-from src.core.config import DB_PATH
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from src.core.config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+
 
 def get_connection():
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    return psycopg2.connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        cursor_factory=RealDictCursor
+    )
 
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
 
-    conn.execute("PRAGMA foreign_keys = ON")
+def criar_tabela_usuarios(cursor):
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            nome VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            senha_hash TEXT NOT NULL,
+            is_active BOOLEAN NOT NULL DEFAULT TRUE,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
 
-    return conn
 
+def criar_tabela_gastos(cursor):
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS gastos (
+            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            nome VARCHAR(255) NOT NULL,
+            valor NUMERIC(10,2) NOT NULL,
+            categoria VARCHAR(100),
+            descricao TEXT,
+            data DATE NOT NULL,
+            usuario_id INTEGER NOT NULL,
+            FOREIGN KEY (usuario_id)
+                REFERENCES usuarios(id)
+                ON DELETE CASCADE
+        );
+    """)
 
 def inicializar_banco():
-    criar_tabela_gastos()
-    criar_tabela_usuarios()
-
-
-def criar_tabela_usuarios():
-    query = """
-        CREATE TABLE IF NOT EXISTS usuarios (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            data_nascimento TEXT NOT NULL,
-            sexo TEXT NOT NULL,
-            senha_hash TEXT NOT NULL,
-            is_active INTEGER NOT NULL DEFAULT 1,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-    """
     with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query)
-        conn.commit()
-
-
-def criar_tabela_gastos():
-    query = """
-        CREATE TABLE IF NOT EXISTS gastos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT,
-            valor NUMERIC NOT NULL,
-            categoria TEXT,
-            descricao TEXT,
-            data TEXT,
-            usuario_id INTEGER NOT NULL,
-            FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-        )
-    """
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query)
+        with conn.cursor() as cursor:
+            criar_tabela_usuarios(cursor)
+            criar_tabela_gastos(cursor)
         conn.commit()
