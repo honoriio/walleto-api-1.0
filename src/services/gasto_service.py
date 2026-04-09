@@ -7,8 +7,8 @@ from src.models.gastos import Gasto
 from src.repositories.gasto_repository import (
     consultar_gasto_por_id_repository,
     consultar_gastos_repository,
-    editar_gastos_repository,
-    excluir_gastos_repository,
+    editar_gasto_repository,
+    excluir_gasto_repository,
     inserir_gasto_repository,
 )
 from src.utils.calcular_utils import calcular_gastos_utils
@@ -180,12 +180,12 @@ def editar_gastos_service(
         usuario_id=usuario_id,
     )
 
-    return editar_gastos_repository(gasto_editado)
+    return editar_gasto_repository(gasto_editado)
 
 
 def excluir_gastos_service(gasto_id: int, usuario_id: int) -> None:
     gasto_id = validar_id_gasto(gasto_id)
-    excluido = excluir_gastos_repository(gasto_id, usuario_id)
+    excluido = excluir_gasto_repository(gasto_id, usuario_id)
 
     if not excluido:
         raise NotFoundError("Não existe gasto com esse ID.")
