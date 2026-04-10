@@ -2,8 +2,8 @@ import logging
 from fastapi import Request
 from src.core.rate_limiter import limiter
 from fastapi import APIRouter, HTTPException, Depends, logger
-from src.api.schemas.auth_schema import AuthLoginRequest, AuthTokenResponse, AuthMeResponse
-from src.services.auth_service import login_service, get_current_user
+from src.api.schemas.auth_schema import AuthLoginRequest, AuthTokenResponse, AuthMeResponse, RefreshTokenRequest, RefreshTokenResponse
+from src.services.auth_service import login_service, get_current_user, refresh_token_service
 
 logger = logging.getLogger(__name__)
 
@@ -34,4 +34,19 @@ def buscar_usuario_logado_api(request: Request, current_user=Depends(get_current
     except Exception:
         logger.exception(
             "Erro ao buscar usuário autenticado - usuario_id=%s", current_user.id,)
+        raise HTTPException(status_code=500, detail="Erro interno do servidor.")
+    
+
+@router.post("/refresh", response_model=RefreshTokenResponse, status_code=200)
+@limiter.limit("5/hour")
+def refresh_token_api(request: Request, data: RefreshTokenRequest):
+    logger.info("Tentativa de refresh token")
+
+    try:
+        ip = request.client.host if request.client else "desconhecido"
+        return refresh_token_service(data.refresh_token, ip)
+    except ValueError as erro:
+        raise HTTPException(status_code=401, detail=str(erro))
+    except Exception:
+        logger.exception("Erro inesperado na rota de refresh")
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")

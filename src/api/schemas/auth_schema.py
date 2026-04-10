@@ -6,6 +6,14 @@ class AuthLoginRequest(BaseModel):
     senha: str
 
 
+class RefreshTokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
 class AuthLoginResponse(BaseModel):
     mensagem: str
     usuario_id: int
@@ -14,7 +22,9 @@ class AuthLoginResponse(BaseModel):
 
 class AuthTokenResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
+
 
 class AuthMeResponse(BaseModel):
     id: int
@@ -23,10 +33,7 @@ class AuthMeResponse(BaseModel):
     data_nascimento: date
     sexo: str
 
-class RefreshTokenRequest():
-    pass
 
-
-class PasswordResetRequest():
+class PasswordResetRequest(BaseModel): # ainda precisamos criar isso aqui 
     pass
 
