@@ -1,8 +1,8 @@
 import pytest
 from datetime import date
-from src.api.schemas.usuario_schema import UsuarioCreateRequest
+from src.api.schemas.usuario_schema import UsuarioCreateRequest, UsuarioUpdateRequest
 from src.models.usuario import Usuario
-from src.services.usuario_service import consultar_usuario_por_id_service, criar_usuario_service, desativar_usuario_service, excluir_usuario_service
+from src.services.usuario_service import consultar_usuario_por_id_service, criar_usuario_service, desativar_usuario_service, editar_usuario_service, excluir_usuario_service
 
 
 #=======================================================================
@@ -349,3 +349,80 @@ def test_excluir_usuario_id(mocker, usuario_id, mensagem_esperada):
 #=======================================================================
 #===================== Teste de edição de usuario ======================
 #=======================================================================
+
+# Teste de editar usuario com sucesso
+def test_editar_usuario_service_sucesso(mocker):
+    usuario_mock = Usuario(
+        id=1,
+        nome="Diego Honorio",
+        email="diego@gmail.com",
+        data_nascimento=date(1997, 5, 21),
+        sexo="Masculino",
+        senha_hash="hash_fake",
+    )
+
+    mock_repo = mocker.patch(
+        "src.services.usuario_service.editar_usuario_repository",
+        return_value=usuario_mock
+    )
+
+    dados = UsuarioUpdateRequest(
+        nome="Diego Honorio",
+        email="diego@gmail.com",
+        data_nascimento="1997-05-21",
+        sexo="Masculino",
+    )
+
+    resultado = editar_usuario_service(1, dados)
+
+    mock_repo.assert_called_once()
+
+    # Valida o objeto enviado ao repository
+    usuario_enviado = mock_repo.call_args[0][0]
+
+    assert usuario_enviado.nome == dados.nome
+    assert usuario_enviado.email == dados.email
+    assert usuario_enviado.data_nascimento == dados.data_nascimento
+    assert usuario_enviado.sexo == dados.sexo
+
+    assert resultado.id == 1
+    assert resultado.nome == dados.nome
+    assert resultado.email == dados.email
+    assert resultado.data_nascimento == dados.data_nascimento
+    assert resultado.sexo == dados.sexo
+
+
+#Teste De edição de usuario parametrizado
+@pytest.mark.parametrize(
+    "campo, valor, mensagem_esperada",
+    [
+        ("nome", "", "O nome não pode estar vazio."),
+        ("email", "diegogmail.com", "O email informado não é válido."),
+        ("sexo", "Reptiliano", "Sexo inválido."),
+        ("data_nascimento", "2050-01-01", "A data de nascimento não pode ser no futuro."),
+    ]
+)
+
+def test_editar_usuario_service_campos_invalidos(mocker, campo, valor, mensagem_esperada):
+
+    mock_repo = mocker.patch(
+        "src.services.usuario_service.editar_usuario_repository"
+    )
+
+    dados_base = {
+        "nome": "Diego Honorio",
+        "email": "diego@gmail.com",
+        "data_nascimento": "1997-05-21",
+        "sexo": "Masculino",
+    }
+
+    dados_base[campo] = valor
+
+    dados = UsuarioUpdateRequest(**dados_base)
+
+    with pytest.raises(ValueError, match=mensagem_esperada):
+        editar_usuario_service(1, dados)
+
+    mock_repo.assert_not_called()
+
+    
