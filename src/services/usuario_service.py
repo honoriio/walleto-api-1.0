@@ -43,9 +43,10 @@ def criar_usuario_service(dados) -> Usuario:
 
     
 def consultar_usuario_por_id_service(id):
-    usuario = consultar_usuario_por_id_repository(id)
+    usuario_id = validar_id_usuario(id)
+    usuario = consultar_usuario_por_id_repository(usuario_id)
     if not usuario:
-        raise NotFoundError("Usuário não encontrado.")
+        raise NotFoundError("Usuário não encontrado.") 
     
     return usuario
 
@@ -65,15 +66,17 @@ def desativar_usuario_service(usuario_id: int) -> None:
     - Excluir permanentemente após 30 dias.
     """
 
-    usuario_id = validar_id_usuario(id) 
+    usuario_id_valido = validar_id_usuario(usuario_id) 
 
-    atualizado = desativar_usuario_repository(usuario_id)
+    atualizado = desativar_usuario_repository(usuario_id_valido)
 
     if not atualizado:
         logger.warning("Tentativa de desativar usuário inexistente - usuario_id:=%s",usuario_id)
         raise NotFoundError("Usuário não encontrado.")
     
     logger.info("Usuário desativado com sucesso - usuario_id=%s", usuario_id)
+
+    return atualizado
 
 
 def excluir_usuario_service(usuario_id: int) -> None:
@@ -106,6 +109,7 @@ def excluir_usuario_service(usuario_id: int) -> None:
         logger.exception(f"Erro inesperado ao excluir usuário - usuario_id: {usuario_id}")
         raise
     
+    return excluido
 
 def editar_usuario_service(id: int, dados: UsuarioUpdateRequest) -> Usuario:
     """

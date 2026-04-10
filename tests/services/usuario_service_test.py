@@ -2,7 +2,7 @@ import pytest
 from datetime import date
 from src.api.schemas.usuario_schema import UsuarioCreateRequest
 from src.models.usuario import Usuario
-from src.services.usuario_service import criar_usuario_service
+from src.services.usuario_service import consultar_usuario_por_id_service, criar_usuario_service, desativar_usuario_service, excluir_usuario_service
 
 
 #=======================================================================
@@ -217,7 +217,135 @@ def test_criar_usuario_service_email_duplicado(mocker):
 
 
 #=======================================================================
-#============== Teste de Busca de usuario por ID =======================
+#============== Teste de Consulta de usuario por ID ====================
 #=======================================================================
 
+# Testa Uma busca valida de usuaario por id 
+def test_consultar_usuario_service_por_id_sucesso(mocker):
+    usuario_mock = Usuario(
+        id=1,
+        nome="Diego Honorio",
+        email="diego@gmail.com",
+        data_nascimento=date(1997, 5, 21),
+        sexo="Masculino",
+        senha_hash="hash_fake",
+    )
 
+    mock_repo = mocker.patch(
+        "src.services.usuario_service.consultar_usuario_por_id_repository",
+        return_value=usuario_mock
+    )
+
+    resultado = consultar_usuario_por_id_service(1)
+
+    mock_repo.assert_called_once_with(1)
+
+    assert resultado.id == usuario_mock.id
+    assert resultado.nome == usuario_mock.nome
+    assert resultado.email == usuario_mock.email
+
+
+# Teste de consulta de usuario por ID parametrizado
+@pytest.mark.parametrize(
+        "usuario_id, mensagem_esperada",
+        [
+            (0, "ID deve ser um número inteiro válido."),
+            ("a", "ID deve ser um número inteiro válido."),
+            (-0, "ID deve ser um número inteiro válido.")
+        ]
+)
+
+# Teste de consulta de usuario por ID com ID = 0
+def test_consultar_usuario_service_id(mocker, usuario_id, mensagem_esperada):
+    mock_repo = mocker.patch(
+        "src.services.usuario_service.consultar_usuario_por_id_repository"
+    )
+
+    with pytest.raises(ValueError, match=mensagem_esperada):
+        consultar_usuario_por_id_service(usuario_id)
+
+    mock_repo.assert_not_called()
+
+
+#=======================================================================
+#================== Teste de desativação de usuario ====================
+#=======================================================================
+
+# Teste de desativação de usuario por ID valido
+def test_desativar_usuario_id_service_sucesso(mocker):
+    mock_repo = mocker.patch(
+        "src.services.usuario_service.desativar_usuario_repository",
+        return_value=True
+    )
+
+    resultado = desativar_usuario_service(1)
+
+    mock_repo.assert_called_once_with(1)
+    assert resultado is True
+
+
+# Teste para desativar o usuario com base no ID Parametrizado
+@pytest.mark.parametrize(
+        "usuario_id, mensagem_esperada",
+        [
+            (0, "ID deve ser um número inteiro válido."),
+            ("a", "ID deve ser um número inteiro válido."),
+            (-1, "ID deve ser um número inteiro válido.")
+        ]
+)
+
+
+# Teste de consulta de usuario por ID com ID = 0
+def test_desativar_usuario_id(mocker, usuario_id, mensagem_esperada):
+    mock_repo = mocker.patch(
+        "src.services.usuario_service.desativar_usuario_repository"
+    )
+
+    with pytest.raises(ValueError, match=mensagem_esperada):
+        desativar_usuario_service(usuario_id)
+
+    mock_repo.assert_not_called()
+
+#=======================================================================
+#===================== Teste de exclusão de usuario ====================
+#=======================================================================
+
+# Teste de exclusão de usuario por ID
+def test_excluir_usuario_service_sucesso(mocker):
+    mock_repo = mocker.patch(
+        "src.services.usuario_service.excluir_usuario_repository",
+        return_value=True
+    )
+
+    resultado = excluir_usuario_service(1)
+
+    mock_repo.assert_called_once_with(1)
+    assert resultado is True
+
+
+# Teste para excluir o usuario com base no ID Parametrizado
+@pytest.mark.parametrize(
+        "usuario_id, mensagem_esperada",
+        [
+            (0, "ID deve ser um número inteiro válido."),
+            ("a", "ID deve ser um número inteiro válido."),
+            (-1, "ID deve ser um número inteiro válido.")
+        ]
+)
+
+
+# Teste de consulta de usuario por ID com ID = 0
+def test_excluir_usuario_id(mocker, usuario_id, mensagem_esperada):
+    mock_repo = mocker.patch(
+        "src.services.usuario_service.excluir_usuario_repository"
+    )
+
+    with pytest.raises(ValueError, match=mensagem_esperada):
+        excluir_usuario_service(usuario_id)
+
+    mock_repo.assert_not_called()
+
+
+#=======================================================================
+#===================== Teste de edição de usuario ======================
+#=======================================================================
