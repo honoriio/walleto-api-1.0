@@ -3,9 +3,9 @@ from decimal import Decimal
 import pytest
 from datetime import date, timedelta
 from src.api.schemas.gasto_schema import GastoCreateRequest, GastoUpdateRequest
-from src.core.exceptions import FiltroInvalidoError
+from src.core.exceptions import FiltroInvalidoError, NotFoundError
 from src.models.gastos import Gasto
-from src.services.gasto_service import consultar_gastos_por_id_service, consultar_gastos_service, criar_gastos_service, editar_gastos_service
+from src.services.gasto_service import consultar_gastos_por_id_service, consultar_gastos_service, criar_gastos_service, editar_gastos_service, excluir_gastos_service
 
 #=======================================================================
 #=============== Teste de criação de gastos ============================
@@ -477,3 +477,76 @@ def test_editar_gastos_service_gasto_id_invalido(
 
     mock_consultar.assert_not_called()
     mock_editar.assert_not_called()
+
+
+#=======================================================================
+#=============== Teste de exclusão de gastos ===========================
+#=======================================================================
+
+
+# Teste de exclusão de gastos com sucesso
+def test_excluir_gastos_service_sucesso(mocker):
+    mock_validar_id = mocker.patch(
+        "src.services.gasto_service.validar_id_gasto",
+        return_value=1
+    )
+
+    mock_excluir = mocker.patch(
+        "src.services.gasto_service.excluir_gasto_repository",
+        return_value=True
+    )
+
+    resultado = excluir_gastos_service(1, 1)
+
+    mock_validar_id.assert_called_once_with(1)
+    mock_excluir.assert_called_once_with(1, 1)
+
+    assert resultado is None
+
+
+# Teste de exclusão de gastos parametrizado com gasto_id invalido
+@pytest.mark.parametrize(
+    "gasto_id, mensagem_esperada",
+    [
+        ("abc", "ID deve ser um número inteiro válido."),
+        (None, "ID deve ser um número inteiro válido."),
+        (0, "ID deve ser maior que zero."),
+        (-1, "ID deve ser maior que zero."),
+    ]
+)
+def test_excluir_gastos_service_gasto_id_invalido(
+    mocker,
+    gasto_id,
+    mensagem_esperada
+):
+    mock_excluir = mocker.patch(
+        "src.services.gasto_service.excluir_gasto_repository"
+    )
+
+    with pytest.raises(ValueError) as exc:
+        excluir_gastos_service(gasto_id, 1)
+
+    assert str(exc.value) == mensagem_esperada
+
+    mock_excluir.assert_not_called()
+
+
+# Teste de exclusão de gastos não encontrados
+def test_excluir_gastos_service_nao_encontrado(mocker):
+    mock_validar_id = mocker.patch(
+        "src.services.gasto_service.validar_id_gasto",
+        return_value=1
+    )
+
+    mock_excluir = mocker.patch(
+        "src.services.gasto_service.excluir_gasto_repository",
+        return_value=False
+    )
+
+    with pytest.raises(NotFoundError) as exc:
+        excluir_gastos_service(1, 1)
+
+    assert str(exc.value) == "Não existe gasto com esse ID."
+
+    mock_validar_id.assert_called_once_with(1)
+    mock_excluir.assert_called_once_with(1, 1)

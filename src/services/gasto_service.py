@@ -193,8 +193,10 @@ def editar_gastos_service(
 
 def excluir_gastos_service(gasto_id: int, usuario_id: int) -> None:
     gasto_id = validar_id_gasto(gasto_id)
+    usuario_id = validar_id_usuario(usuario_id)
     excluido = excluir_gasto_repository(gasto_id, usuario_id)
 
     if not excluido:
         raise NotFoundError("Não existe gasto com esse ID.")
+    
     
