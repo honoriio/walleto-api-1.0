@@ -20,11 +20,24 @@ password_context = CryptContext(
 
 
 def gerar_hash_senha(senha: str) -> str:
+    if not isinstance(senha, str) or not senha.strip():
+        raise ValueError("Senha inválida.")
+
     return password_context.hash(senha)
 
 
 def verificar_senha(senha: str, senha_hash: str) -> bool:
-    return password_context.verify(senha, senha_hash)
+    if not isinstance(senha, str) or not senha.strip():
+        raise ValueError("Senha inválida.")
+
+    if not isinstance(senha_hash, str) or not senha_hash.strip():
+        raise ValueError("Hash de senha inválido.")
+
+    try:
+        return password_context.verify(senha, senha_hash)
+    except Exception:
+        
+        return False
 
 
 def login_service(dados_login: AuthLoginRequest):
