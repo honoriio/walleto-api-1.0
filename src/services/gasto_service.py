@@ -21,6 +21,7 @@ from src.validators.gasto_validator import (
     validar_nome_gasto,
     validar_valor_gasto,
 )
+from src.validators.usuario_validator import validar_id_usuario
 
 logger = logging.getLogger(__name__)
 
@@ -30,16 +31,15 @@ def criar_gastos_service(dados: GastoCreateRequest, usuario_id: int) -> Gasto:
     valor = validar_valor_gasto(dados.valor)
     categoria = validar_categoria_gasto(dados.categoria)
     descricao = validar_descricao_gasto(dados.descricao)
-
-    data_obj = dados.data if dados.data else date.today()
-    data_iso = formatar_data_ISO(data_obj)
-
+    data  = dados.data if dados.data else date.today()
+    data_obj = validar_data_gasto(data)
+    usuario_id = validar_id_usuario(usuario_id)
     novo_gasto = Gasto(
         nome=nome,
         valor=valor,
         categoria=categoria,
         descricao=descricao,
-        data=data_iso,
+        data=data_obj,
         usuario_id=usuario_id,
     )
 
@@ -64,10 +64,16 @@ def consultar_gastos_service(
         categoria = validar_categoria_gasto(categoria)
 
     if valor_min is not None:
-        valor_min = validar_valor_gasto(valor_min)
+        try:
+            valor_min = validar_valor_gasto(valor_min)
+        except ValueError:
+            raise FiltroInvalidoError("Valor mínimo inválido.")
 
     if valor_max is not None:
-        valor_max = validar_valor_gasto(valor_max)
+        try:
+            valor_max = validar_valor_gasto(valor_max)
+        except ValueError:
+            raise FiltroInvalidoError("Valor máximo inválido.")
 
     if valor_min is not None and valor_max is not None:
         if valor_min > valor_max:
@@ -112,15 +118,17 @@ def consultar_gastos_service(
 
 def consultar_gastos_por_id_service(gasto_id: int, usuario_id: int) -> Gasto:
     gasto_id = validar_id_gasto(gasto_id)
+    usuario_id_valido = validar_id_usuario(usuario_id)
+
     gasto = consultar_gasto_por_id_repository(gasto_id)
 
     if not gasto:
         raise NotFoundError("Gasto não encontrado.")
 
-    if gasto.usuario_id != usuario_id:
+    if gasto.usuario_id != usuario_id_valido:
         logger.warning(
             "Acesso negado | usuario_id=%s | gasto_id=%s | dono_id=%s",
-            usuario_id,
+            usuario_id_valido,
             gasto_id,
             gasto.usuario_id,
         )
@@ -133,7 +141,7 @@ def editar_gastos_service(
     gasto_id: int,
     dados: GastoUpdateRequest,
     usuario_id: int,
-) -> Gasto:
+    ) -> Gasto:
     gasto_id = validar_id_gasto(gasto_id)
     gasto_atual = consultar_gasto_por_id_repository(gasto_id, usuario_id)
 
@@ -165,9 +173,9 @@ def editar_gastos_service(
     )
 
     data_final = (
-        formatar_data_ISO(dados.data)
-        if dados.data is not None
-        else gasto_atual.data
+    validar_data_gasto(dados.data)
+    if dados.data is not None
+    else gasto_atual.data
     )
 
     gasto_editado = Gasto(
@@ -189,3 +197,4 @@ def excluir_gastos_service(gasto_id: int, usuario_id: int) -> None:
 
     if not excluido:
         raise NotFoundError("Não existe gasto com esse ID.")
+    

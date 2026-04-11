@@ -19,11 +19,14 @@ def validar_nome_gasto(nome: str)-> str: # --> FUNÇÃO CRIADA PARA COLETAR E VA
    return nome.strip()
             
 
-def validar_valor_gasto(valor: Decimal) -> Decimal:
+def validar_valor_gasto(valor):
+    if not isinstance(valor, Decimal):
+        raise ValueError("Valor inválido.")
+
     if valor <= 0:
         raise ValueError("O valor deve ser maior que zero.")
 
-    return valor                
+    return valor             
         
 
 def validar_categoria_gasto(categoria: str) -> str:
@@ -53,36 +56,28 @@ def validar_descricao_gasto(descricao) -> str:
     return descricao
 
 
-def validar_data_gasto(data_str: str) -> date:
-    if not data_str or not str(data_str).strip():
-        return date.today()
+def validar_data_gasto(data_gasto: date | None) -> date:
+    hoje = date.today()
 
-    data_str = str(data_str).strip()
+    if data_gasto is None:
+        return hoje
 
-    try:
-        # caso: 01012024
-        if len(data_str) == 8 and data_str.isdigit():
-            data_str = f"{data_str[0:2]}/{data_str[2:4]}/{data_str[4:8]}"   
+    if not isinstance(data_gasto, date):
+        raise ValueError("Data inválida.")
 
-        # limpa separadores estranhos
-        data_limpa = re.sub(r"\D+", "/", data_str)
+    if data_gasto > hoje:
+        raise ValueError("A data não pode ser no futuro.")
 
-        data_obj = datetime.strptime(data_limpa, "%d/%m/%Y").date()
-
-        return data_obj
-
-    except ValueError:
-        raise ValueError("Formato de data inválido. Use DD/MM/AAAA.")
+    return data_gasto
             
 
 def validar_id_gasto(valor) -> int:
     try:
         numero = int(valor)
-
-        if numero <= 0:
-            raise ValueError("ID deve ser maior que zero.")
-
-        return numero
-
     except (TypeError, ValueError):
         raise ValueError("ID deve ser um número inteiro válido.")
+
+    if numero <= 0:
+        raise ValueError("ID deve ser maior que zero.")
+
+    return numero
