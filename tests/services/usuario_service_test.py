@@ -249,9 +249,10 @@ def test_consultar_usuario_service_por_id_sucesso(mocker):
 @pytest.mark.parametrize(
         "usuario_id, mensagem_esperada",
         [
-            (0, "ID deve ser um número inteiro válido."),
-            ("a", "ID deve ser um número inteiro válido."),
-            (-0, "ID deve ser um número inteiro válido.")
+        ("a", "ID deve ser um número inteiro válido."),
+        (None, "ID deve ser um número inteiro válido."),
+        (0, "ID deve ser maior que zero."),
+        (-1, "ID deve ser maior que zero."),
         ]
 )
 
@@ -288,9 +289,10 @@ def test_desativar_usuario_id_service_sucesso(mocker):
 @pytest.mark.parametrize(
         "usuario_id, mensagem_esperada",
         [
-            (0, "ID deve ser um número inteiro válido."),
-            ("a", "ID deve ser um número inteiro válido."),
-            (-1, "ID deve ser um número inteiro válido.")
+        ("a", "ID deve ser um número inteiro válido."),
+        (None, "ID deve ser um número inteiro válido."),
+        (0, "ID deve ser maior que zero."),
+        (-1, "ID deve ser maior que zero."),
         ]
 )
 
@@ -327,9 +329,10 @@ def test_excluir_usuario_service_sucesso(mocker):
 @pytest.mark.parametrize(
         "usuario_id, mensagem_esperada",
         [
-            (0, "ID deve ser um número inteiro válido."),
-            ("a", "ID deve ser um número inteiro válido."),
-            (-1, "ID deve ser um número inteiro válido.")
+        ("a", "ID deve ser um número inteiro válido."),
+        (None, "ID deve ser um número inteiro válido."),
+        (0, "ID deve ser maior que zero."),
+        (-1, "ID deve ser maior que zero."),
         ]
 )
 
@@ -352,7 +355,7 @@ def test_excluir_usuario_id(mocker, usuario_id, mensagem_esperada):
 
 # Teste de editar usuario com sucesso
 def test_editar_usuario_service_sucesso(mocker):
-    usuario_mock = Usuario(
+    usuario_atual_mock = Usuario(
         id=1,
         nome="Diego Honorio",
         email="diego@gmail.com",
@@ -361,9 +364,21 @@ def test_editar_usuario_service_sucesso(mocker):
         senha_hash="hash_fake",
     )
 
-    mock_repo = mocker.patch(
+    usuario_editado_mock = usuario_atual_mock
+
+    mocker.patch(
+        "src.services.usuario_service.consultar_usuario_por_id_repository",
+        return_value=usuario_atual_mock
+    )
+
+    mocker.patch(
+        "src.services.usuario_service.consultar_usuario_por_email_repository",
+        return_value=None  # nenhum conflito de email
+    )
+
+    mock_editar = mocker.patch(
         "src.services.usuario_service.editar_usuario_repository",
-        return_value=usuario_mock
+        return_value=usuario_editado_mock
     )
 
     dados = UsuarioUpdateRequest(
@@ -375,21 +390,8 @@ def test_editar_usuario_service_sucesso(mocker):
 
     resultado = editar_usuario_service(1, dados)
 
-    mock_repo.assert_called_once()
-
-    # Valida o objeto enviado ao repository
-    usuario_enviado = mock_repo.call_args[0][0]
-
-    assert usuario_enviado.nome == dados.nome
-    assert usuario_enviado.email == dados.email
-    assert usuario_enviado.data_nascimento == dados.data_nascimento
-    assert usuario_enviado.sexo == dados.sexo
-
-    assert resultado.id == 1
-    assert resultado.nome == dados.nome
-    assert resultado.email == dados.email
-    assert resultado.data_nascimento == dados.data_nascimento
-    assert resultado.sexo == dados.sexo
+    assert resultado == usuario_editado_mock
+    mock_editar.assert_called_once()
 
 
 #Teste De edição de usuario parametrizado
@@ -398,12 +400,32 @@ def test_editar_usuario_service_sucesso(mocker):
     [
         ("nome", "", "O nome não pode estar vazio."),
         ("email", "diegogmail.com", "O email informado não é válido."),
-        ("sexo", "Reptiliano", "Sexo inválido."),
+        ("sexo", "Reptiliano", "Sexo inválido. Use 'Masculino' ou 'Feminino'."),
         ("data_nascimento", "2050-01-01", "A data de nascimento não pode ser no futuro."),
     ]
 )
 
+
+#Teste de editar usuario parametrizado com dados invalidos
 def test_editar_usuario_service_campos_invalidos(mocker, campo, valor, mensagem_esperada):
+    usuario_atual_mock = Usuario(
+        id=1,
+        nome="Diego Honorio",
+        email="diego@gmail.com",
+        data_nascimento=date(1997, 5, 21),
+        sexo="Masculino",
+        senha_hash="hash_fake",
+    )
+
+    mocker.patch(
+        "src.services.usuario_service.consultar_usuario_por_id_repository",
+        return_value=usuario_atual_mock
+    )
+
+    mocker.patch(
+        "src.services.usuario_service.consultar_usuario_por_email_repository",
+        return_value=None
+    )
 
     mock_repo = mocker.patch(
         "src.services.usuario_service.editar_usuario_repository"
@@ -420,9 +442,10 @@ def test_editar_usuario_service_campos_invalidos(mocker, campo, valor, mensagem_
 
     dados = UsuarioUpdateRequest(**dados_base)
 
-    with pytest.raises(ValueError, match=mensagem_esperada):
+    with pytest.raises(ValueError) as exc:
         editar_usuario_service(1, dados)
 
-    mock_repo.assert_not_called()
+    assert str(exc.value) == mensagem_esperada
 
+    mock_repo.assert_not_called()
     
