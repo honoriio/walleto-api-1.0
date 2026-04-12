@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+from src.core.rate_limiter import limiter
 import pytest
 from src.api.main import app
 
@@ -15,3 +16,8 @@ def simular_input(monkeypatch):
 @pytest.fixture
 def client():
     return TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def disable_rate_limit():
+    limiter.enabled = False
