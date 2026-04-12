@@ -1,4 +1,6 @@
+from fastapi.testclient import TestClient
 import pytest
+from src.api.main import app
 
 
 # Quem me deu essa dica foi o chat gpt, achei interessante e decidi usar. ecomiza na repetição de codigos e deixa as funções de tests mais limpas. 
@@ -8,3 +10,8 @@ def simular_input(monkeypatch):
         iter_entradas = iter(entradas)
         monkeypatch.setattr("builtins.input", lambda _: next(iter_entradas))
     return _simular
+
+
+@pytest.fixture
+def client():
+    return TestClient(app)

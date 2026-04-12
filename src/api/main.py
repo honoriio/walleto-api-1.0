@@ -9,6 +9,7 @@ from src.api.routes.gasto_routes import router as gastos_router
 from src.api.routes.relatorio_routes import router as relatorio_router
 from src.api.routes.usuarios_routes import router as usuarios_router
 from src.api.routes.auth_routes import router as authlogin_router
+from src.api.routes.health_routes import router as health_routes
 from slowapi.errors import RateLimitExceeded
 from src.core.rate_limiter import limiter
 from src.core.rate_limiter_handler import rate_limit_handler
@@ -37,6 +38,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.state.limiter = limiter
+
+app.include_router(health_routes)
 
 app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 
