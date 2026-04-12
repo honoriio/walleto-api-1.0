@@ -1,11 +1,14 @@
 from datetime import date, datetime, timedelta, timezone
 
+from fastapi import HTTPException
+from starlette import status as http_status
+from jose import ExpiredSignatureError, JWTError
 import pytest
 
 from src.api.schemas.auth_schema import AuthLoginRequest
 from src.core.config import ACCESS_TOKEN_EXPIRE_MINUTES
 from src.models.usuario import Usuario
-from src.services.auth_service import criar_access_token, gerar_hash_senha, login_service, verificar_senha
+from src.services.auth_service import criar_access_token, criar_refresh_token, gerar_hash_senha, get_current_user, login_service, refresh_token_service, verificar_senha
 
 
 #=======================================================================
@@ -317,7 +320,426 @@ def test_criar_access_token_entrada_invalida(entrada):
         criar_access_token(entrada)
 
 
-#=======================================================================
-#=================== Teste de current user =============================
-#=======================================================================
+# =========================================================
+# TESTES - get_current_user
+# =========================================================
 
+class DummyUsuario:
+    def __init__(self, id=1, nome="Diego"):
+        self.id = id
+        self.nome = nome
+
+
+def test_get_current_user_deve_retornar_usuario_quando_token_for_valido(mocker):
+    token = "token_valido"
+    usuario_mock = DummyUsuario(id=1, nome="Diego")
+
+    mock_decode = mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        return_value={"sub": "1", "type": "access"}
+    )
+    mock_consultar_usuario = mocker.patch(
+        "src.services.auth_service.consultar_usuario_por_id_repository",
+        return_value=usuario_mock
+    )
+
+    resultado = get_current_user(token)
+
+    assert resultado == usuario_mock
+    mock_decode.assert_called_once_with(
+        token,
+        mocker.ANY,
+        algorithms=[mocker.ANY]
+    )
+    mock_consultar_usuario.assert_called_once_with(1)
+
+
+def test_get_current_user_deve_lancar_401_quando_sub_estiver_ausente(mocker):
+    token = "token_sem_sub"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        return_value={"type": "access"}
+    )
+    mock_consultar_usuario = mocker.patch(
+        "src.services.auth_service.consultar_usuario_por_id_repository"
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        get_current_user(token)
+
+    assert exc.value.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == "Token inválido."
+    mock_consultar_usuario.assert_not_called()
+
+
+def test_get_current_user_deve_lancar_401_quando_type_nao_for_access(mocker):
+    token = "token_tipo_invalido"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        return_value={"sub": "1", "type": "refresh"}
+    )
+    mock_consultar_usuario = mocker.patch(
+        "src.services.auth_service.consultar_usuario_por_id_repository"
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        get_current_user(token)
+
+    assert exc.value.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == "Token inválido."
+    mock_consultar_usuario.assert_not_called()
+
+
+def test_get_current_user_deve_lancar_401_quando_usuario_nao_for_encontrado(mocker):
+    token = "token_usuario_inexistente"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        return_value={"sub": "1", "type": "access"}
+    )
+    mock_consultar_usuario = mocker.patch(
+        "src.services.auth_service.consultar_usuario_por_id_repository",
+        return_value=None
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        get_current_user(token)
+
+    assert exc.value.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == "Token inválido."
+    mock_consultar_usuario.assert_called_once_with(1)
+
+
+def test_get_current_user_deve_lancar_401_quando_jwt_for_invalido(mocker):
+    token = "token_invalido"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        side_effect=JWTError()
+    )
+    mock_consultar_usuario = mocker.patch(
+        "src.services.auth_service.consultar_usuario_por_id_repository"
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        get_current_user(token)
+
+    assert exc.value.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == "Token inválido."
+    mock_consultar_usuario.assert_not_called()
+
+
+def test_get_current_user_deve_lancar_401_quando_sub_nao_for_inteiro_valido(mocker):
+    token = "token_sub_invalido"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        return_value={"sub": "abc", "type": "access"}
+    )
+    mock_consultar_usuario = mocker.patch(
+        "src.services.auth_service.consultar_usuario_por_id_repository"
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        get_current_user(token)
+
+    assert exc.value.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == "Token inválido."
+    mock_consultar_usuario.assert_not_called()
+
+
+def test_get_current_user_deve_relancar_httpexception_sem_converter_para_500(mocker):
+    token = "token_com_httpexception"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        return_value={"sub": "1", "type": "access"}
+    )
+    mocker.patch(
+        "src.services.auth_service.consultar_usuario_por_id_repository",
+        side_effect=HTTPException(
+            status_code=http_status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido."
+        )
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        get_current_user(token)
+
+    assert exc.value.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == "Token inválido."
+
+
+def test_get_current_user_deve_lancar_500_em_erro_inesperado(mocker):
+    token = "token_erro_inesperado"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        side_effect=Exception("erro inesperado")
+    )
+    mock_consultar_usuario = mocker.patch(
+        "src.services.auth_service.consultar_usuario_por_id_repository"
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        get_current_user(token)
+
+    assert exc.value.status_code == http_status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert exc.value.detail == "Erro interno do servidor."
+    mock_consultar_usuario.assert_not_called()
+
+
+# =========================================================
+# TESTES - criar_refresh_token
+# =========================================================
+
+def test_criar_refresh_token_deve_gerar_token_com_payload_correto(mocker):
+    usuario_id = 1
+    token_esperado = "refresh_token_gerado"
+
+    fake_now = datetime(2026, 4, 12, 12, 0, 0, tzinfo=timezone.utc)
+    exp_esperado = fake_now + timedelta(days=15)
+
+    mock_datetime = mocker.patch("src.services.auth_service.datetime")
+    mock_datetime.now.return_value = fake_now
+
+    mock_encode = mocker.patch(
+        "src.services.auth_service.jwt.encode",
+        return_value=token_esperado
+    )
+
+    resultado = criar_refresh_token(usuario_id)
+
+    assert resultado == token_esperado
+    mock_encode.assert_called_once()
+
+    args, kwargs = mock_encode.call_args
+    payload_enviado = args[0]
+
+    assert payload_enviado["sub"] == "1"
+    assert payload_enviado["type"] == "refresh"
+    assert payload_enviado["exp"] == exp_esperado
+    assert kwargs["algorithm"] == mocker.ANY
+
+
+def test_criar_refresh_token_deve_converter_usuario_id_para_string_no_payload(mocker):
+    usuario_id = 99
+
+    fake_now = datetime(2026, 4, 12, 12, 0, 0, tzinfo=timezone.utc)
+
+    mock_datetime = mocker.patch("src.services.auth_service.datetime")
+    mock_datetime.now.return_value = fake_now
+
+    mock_encode = mocker.patch(
+        "src.services.auth_service.jwt.encode",
+        return_value="token"
+    )
+
+    criar_refresh_token(usuario_id)
+
+    args, _ = mock_encode.call_args
+    payload_enviado = args[0]
+
+    assert isinstance(payload_enviado["sub"], str)
+    assert payload_enviado["sub"] == "99"
+
+
+def test_criar_refresh_token_deve_propagar_erro_se_encode_falhar(mocker):
+    usuario_id = 1
+
+    fake_now = datetime(2026, 4, 12, 12, 0, 0, tzinfo=timezone.utc)
+
+    mock_datetime = mocker.patch("src.services.auth_service.datetime")
+    mock_datetime.now.return_value = fake_now
+
+    mocker.patch(
+        "src.services.auth_service.jwt.encode",
+        side_effect=Exception("falha ao gerar token")
+    )
+
+    with pytest.raises(Exception) as exc:
+        criar_refresh_token(usuario_id)
+
+    assert str(exc.value) == "falha ao gerar token"
+
+
+# =========================================================
+# TESTES - refresh_token_service
+# =========================================================
+
+def test_refresh_token_service_deve_retornar_novo_access_token_quando_refresh_for_valido(mocker):
+    refresh_token = "refresh_valido"
+    ip = "127.0.0.1"
+
+    mock_decode = mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        return_value={"sub": "1", "type": "refresh"}
+    )
+    mock_criar_access = mocker.patch(
+        "src.services.auth_service.criar_access_token",
+        return_value="novo_access_token"
+    )
+
+    resultado = refresh_token_service(refresh_token, ip)
+
+    assert resultado == {
+        "access_token": "novo_access_token",
+        "token_type": "bearer"
+    }
+
+    mock_decode.assert_called_once_with(
+        refresh_token,
+        mocker.ANY,
+        algorithms=[mocker.ANY]
+    )
+    mock_criar_access.assert_called_once_with(
+        data={
+            "sub": "1",
+            "type": "access"
+        }
+    )
+
+
+def test_refresh_token_service_deve_lancar_401_quando_type_nao_for_refresh(mocker):
+    refresh_token = "token_invalido"
+    ip = "127.0.0.1"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        return_value={"sub": "1", "type": "access"}
+    )
+    mock_criar_access = mocker.patch(
+        "src.services.auth_service.criar_access_token"
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        refresh_token_service(refresh_token, ip)
+
+    assert exc.value.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == "Refresh token inválido."
+    mock_criar_access.assert_not_called()
+
+
+def test_refresh_token_service_deve_lancar_401_quando_sub_estiver_ausente(mocker):
+    refresh_token = "token_sem_sub"
+    ip = "127.0.0.1"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        return_value={"type": "refresh"}
+    )
+    mock_criar_access = mocker.patch(
+        "src.services.auth_service.criar_access_token"
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        refresh_token_service(refresh_token, ip)
+
+    assert exc.value.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == "Refresh token inválido."
+    mock_criar_access.assert_not_called()
+
+
+def test_refresh_token_service_deve_lancar_401_quando_sub_nao_for_inteiro_valido(mocker):
+    refresh_token = "token_sub_invalido"
+    ip = "127.0.0.1"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        return_value={"sub": "abc", "type": "refresh"}
+    )
+    mock_criar_access = mocker.patch(
+        "src.services.auth_service.criar_access_token"
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        refresh_token_service(refresh_token, ip)
+
+    assert exc.value.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == "Refresh token inválido."
+    mock_criar_access.assert_not_called()
+
+
+def test_refresh_token_service_deve_lancar_401_quando_refresh_token_estiver_expirado(mocker):
+    refresh_token = "token_expirado"
+    ip = "127.0.0.1"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        side_effect=ExpiredSignatureError()
+    )
+    mock_criar_access = mocker.patch(
+        "src.services.auth_service.criar_access_token"
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        refresh_token_service(refresh_token, ip)
+
+    assert exc.value.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == "Refresh token expirado."
+    mock_criar_access.assert_not_called()
+
+
+def test_refresh_token_service_deve_lancar_401_quando_jwt_for_invalido(mocker):
+    refresh_token = "token_jwt_invalido"
+    ip = "127.0.0.1"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        side_effect=JWTError()
+    )
+    mock_criar_access = mocker.patch(
+        "src.services.auth_service.criar_access_token"
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        refresh_token_service(refresh_token, ip)
+
+    assert exc.value.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == "Refresh token inválido."
+    mock_criar_access.assert_not_called()
+
+
+def test_refresh_token_service_deve_relancar_httpexception_sem_converter_para_500(mocker):
+    refresh_token = "token_com_httpexception"
+    ip = "127.0.0.1"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        return_value={"sub": "1", "type": "refresh"}
+    )
+    mocker.patch(
+        "src.services.auth_service.criar_access_token",
+        side_effect=HTTPException(
+            status_code=http_status.HTTP_401_UNAUTHORIZED,
+            detail="erro http controlado"
+        )
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        refresh_token_service(refresh_token, ip)
+
+    assert exc.value.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert exc.value.detail == "erro http controlado"
+
+
+def test_refresh_token_service_deve_lancar_500_em_erro_inesperado(mocker):
+    refresh_token = "token_erro_inesperado"
+    ip = "127.0.0.1"
+
+    mocker.patch(
+        "src.services.auth_service.jwt.decode",
+        side_effect=Exception("erro inesperado")
+    )
+    mock_criar_access = mocker.patch(
+        "src.services.auth_service.criar_access_token"
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        refresh_token_service(refresh_token, ip)
+
+    assert exc.value.status_code == http_status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert exc.value.detail == "Erro interno do servidor."
+    mock_criar_access.assert_not_called()
