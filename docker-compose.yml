@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:15
@@ -13,20 +11,23 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U walleto_user -d walleto_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   api:
     build: .
     container_name: walleto_api
+    restart: always
     ports:
       - "8000:8000"
     depends_on:
-      - db
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: walleto_db
-      DB_USER: walleto_user
-      DB_PASSWORD: walleto_pass
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
 
 volumes:
   postgres_data:
