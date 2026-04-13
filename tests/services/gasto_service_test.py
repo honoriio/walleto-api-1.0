@@ -248,7 +248,7 @@ def test_consultar_gasto_service_por_id_sucesso(mocker):
 
     resultado = consultar_gastos_por_id_service(1, 1)
 
-    mock_repo.assert_called_once_with(1)
+    mock_repo.assert_called_once_with(1, 1)
 
     assert resultado.id == gasto_mock.id
     assert resultado.nome == gasto_mock.nome
@@ -312,7 +312,7 @@ def test_consultar_gasto_service_por_id_usuario_id_invalido(
     mock_repo.assert_not_called()
 
 #=======================================================================
-#=============== Teste de editara de gastos ============================
+#=============== Teste de editar gastos ============================
 #=======================================================================
 
 # Teste para editar gasto com parametros validos

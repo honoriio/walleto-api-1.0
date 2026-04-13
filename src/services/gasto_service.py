@@ -120,7 +120,7 @@ def consultar_gastos_por_id_service(gasto_id: int, usuario_id: int) -> Gasto:
     gasto_id = validar_id_gasto(gasto_id)
     usuario_id_valido = validar_id_usuario(usuario_id)
 
-    gasto = consultar_gasto_por_id_repository(gasto_id)
+    gasto = consultar_gasto_por_id_repository(gasto_id, usuario_id)
 
     if not gasto:
         raise NotFoundError("Gasto não encontrado.")
