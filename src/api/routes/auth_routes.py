@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-@router.post("/login", response_model=AuthTokenResponse, status_code=200, summary="Realizar login", description="Autentica o usuário e retorna access token e refresh token.",)
+@router.post("/", response_model=AuthTokenResponse, status_code=200, summary="Realizar login", description="Autentica o usuário e retorna access token e refresh token.",)
 @limiter.limit("5/minute")
 def login_usuario_api(request: Request, dados_login: AuthLoginRequest):
     logger.info("Login iniciado - email=%s", dados_login.email)
