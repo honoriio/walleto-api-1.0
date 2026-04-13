@@ -47,7 +47,7 @@ app.include_router(authlogin_router)
 
 app.include_router(usuarios_router)
 
-app.include_router(gastos_router)
+#app.include_router(gastos_router)
 
 app.include_router(dashboard_router)
 
