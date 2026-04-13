@@ -7,8 +7,8 @@ API REST para gerenciamento de gastos pessoais, desenvolvida com foco em organiz
 ## 📸 Preview
 
 ### 🔧 API (Swagger)
-![Swagger](assets/swagger1.png)
-![Swagger](assets/swagger2.png)
+![Swagger](assets/swagger1.png.png)
+![Swagger](assets/swagger2.png.png)
 
 ### 📊 Dashboard (em desenvolvimento)
 ![Dashboard](assets/dashboard_resumo.png)
