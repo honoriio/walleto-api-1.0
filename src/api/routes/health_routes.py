@@ -10,6 +10,6 @@ Retorna o status atual da API, indicando se o serviço está disponível.
 def health_check():
     return {
         "status": "ok",
-        "service": "walleto-api"
+        "service": "walleto-api",
+        "version": "1.0.0"
     }
-

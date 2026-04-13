@@ -13,7 +13,7 @@ from src.services.relatorio_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/relatorios", tags=["Relatorios"])
+router = APIRouter(prefix="/relatorios", tags=["Relatórios"])
 
 
 @router.get("/exportar/xlsx", status_code=200, summary="Exporta gastos em formato XLSX",
