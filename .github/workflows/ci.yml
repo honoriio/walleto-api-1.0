@@ -38,4 +38,5 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Rodar testes
-        run: pytest -v
+        run: pytest -v 
+
