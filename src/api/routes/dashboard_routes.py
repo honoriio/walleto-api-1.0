@@ -12,7 +12,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
-@router.post("/iniciar")
+@router.post("/iniciar", summary="Inicia o dashboard do usuário",
+description="""
+Inicializa o dashboard do usuário autenticado após preparar os dados necessários.
+
+Pode retornar erro caso não existam dados ou ocorra falha durante a inicialização.
+""")
 @limiter.limit("10/hour")
 def iniciar_dashboard_api(request: Request, current_user: Usuario = Depends(get_current_user)):
     logger.info("Inicialização de dashboard solicitada | usuario_id=%s", current_user.id,)
@@ -40,8 +45,12 @@ def iniciar_dashboard_api(request: Request, current_user: Usuario = Depends(get_
         raise HTTPException(status_code=500, detail="Erro interno ao iniciar dashboard.")
 
 
-@router.post("/encerrar")
-@limiter.limit("10/hour")
+@router.post("/encerrar", summary="Encerra o dashboard do usuário",
+description="""
+Finaliza a execução do dashboard ativo do usuário autenticado.
+""")
+
+@limiter.limit("10/hour", )
 def encerrar_dashboard_api(request: Request, current_user: Usuario = Depends(get_current_user)):
     logger.info("Encerramento de dashboard solicitado | usuario_id=%s", current_user.id)
 
@@ -56,7 +65,11 @@ def encerrar_dashboard_api(request: Request, current_user: Usuario = Depends(get
         raise HTTPException(status_code=500, detail="Erro interno ao encerrar dashboard.")
 
 
-@router.get("/status")
+@router.get("/status", summary="Obtém o status do dashboard",
+description="""
+Retorna o estado atual do dashboard do usuário autenticado.
+""")
+
 @limiter.limit("10/hour")
 def status_dashboard_api(request: Request, current_user: Usuario = Depends(get_current_user)):
     try:
