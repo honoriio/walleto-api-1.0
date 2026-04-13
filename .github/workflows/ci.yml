@@ -9,6 +9,7 @@ on:
 
 jobs:
   test:
+    name: Testes
     runs-on: ubuntu-latest
 
     env:
@@ -31,4 +32,3 @@ jobs:
 
       - name: Rodar testes
         run: pytest -v 
-
