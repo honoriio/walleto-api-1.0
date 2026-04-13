@@ -37,7 +37,12 @@ def buscar_usuario_logado_api(request: Request, current_user=Depends(get_current
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")
     
 
-@router.post("/refresh", response_model=RefreshTokenResponse, status_code=200)
+@router.post("/refresh", response_model=RefreshTokenResponse, status_code=200, summary="Refresh access token", description=(
+    "Gera um novo access token utilizando um refresh token válido. "
+    "O refresh token deve ser enviado no corpo da requisição. "
+    "Caso o token seja inválido ou expirado, a requisição será rejeitada."
+))
+
 @limiter.limit("5/hour")
 def refresh_token_api(request: Request, data: RefreshTokenRequest):
     logger.info("Tentativa de refresh token")
