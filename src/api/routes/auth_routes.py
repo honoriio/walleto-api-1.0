@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-@router.post("/", response_model=AuthTokenResponse, status_code=200)
+@router.post("/login", response_model=AuthTokenResponse, status_code=200, summary="Realizar login", description="Autentica o usuário e retorna access token e refresh token.",)
 @limiter.limit("5/minute")
 def login_usuario_api(request: Request, dados_login: AuthLoginRequest):
     logger.info("Login iniciado - email=%s", dados_login.email)
@@ -23,7 +23,7 @@ def login_usuario_api(request: Request, dados_login: AuthLoginRequest):
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")
     
 
-@router.get("/me", response_model=AuthMeResponse, status_code=200)
+@router.get("/me", response_model=AuthMeResponse, status_code=200,  summary="Obter usuário autenticado", description="Retorna os dados do usuário autenticado a partir do token JWT.")
 @limiter.limit("5/minute")
 def buscar_usuario_logado_api(request: Request, current_user=Depends(get_current_user)):
     logger.info("Requisição de usuário autenticado - usuario_id=%s", current_user.id)
