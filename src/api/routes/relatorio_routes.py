@@ -16,7 +16,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/relatorios", tags=["Relatorios"])
 
 
-@router.get("/exportar/xlsx", status_code=200)
+@router.get("/exportar/xlsx", status_code=200, summary="Exporta gastos em formato XLSX",
+    description="""
+Gera um arquivo XLSX com os gastos do usuário autenticado.
+Permite aplicar filtros como nome, categoria, valor e intervalo de datas.
+"""
+)
 @limiter.limit("15/hour")
 def exportar_gastos_xlsx_api(
     request: Request,
@@ -69,7 +74,12 @@ def exportar_gastos_xlsx_api(
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")
 
 
-@router.get("/exportar/pdf", status_code=200)
+@router.get("/exportar/pdf", status_code=200, summary="Exporta gastos em formato PDF",
+    description="""
+Gera um arquivo PDF com os gastos do usuário autenticado.
+Permite aplicar filtros como nome, categoria, valor e intervalo de datas.
+"""
+)
 @limiter.limit("15/hour")
 def exportar_gastos_pdf_api(
     request: Request,
