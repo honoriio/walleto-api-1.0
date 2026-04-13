@@ -89,7 +89,7 @@ src/
 
 * **Python 3.12**
 * **FastAPI**
-* **SQLite** (planejado PostgreSQL)
+* **PostgreSQL**  
 * **Pydantic**
 * **JWT (Auth)**
 * **Pytest**
@@ -166,7 +166,6 @@ Retorna o status da API.
 
 ## 📈 Roadmap
 
-* migração para PostgreSQL
 * separação do dashboard como serviço independente
 * exportação de relatórios com download direto (PDF/XLSX)
 * implementação de cache (Redis)
