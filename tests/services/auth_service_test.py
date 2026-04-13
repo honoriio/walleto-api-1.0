@@ -112,6 +112,28 @@ def test_verificar_senha_erro_interno(mocker):
 #=======================================================================
 
 
+def test_login_api_sucesso(client, mocker):
+    mocker.patch(
+        "src.services.auth_service.login_service",
+        return_value={
+            "access_token": "fake",
+            "refresh_token": "fake",
+            "token_type": "bearer"
+        }
+    )
+
+    response = client.post(
+        "/auth/login",
+        data={
+            "username": "diego@gmail.com",
+            "password": "Senha123"
+        }
+    )
+
+    assert response.status_code == 200
+    assert "access_token" in response.json()
+
+
 # Teste de logi com sucesso
 def test_login_service_sucesso(mocker):
     dados = AuthLoginRequest(

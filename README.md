@@ -187,6 +187,4 @@ Retorna o status da API.
 
 Este projeto está sob a licença MIT.
 
-````
-
 ---
