@@ -1,113 +1,176 @@
-# Walleto API 1.0
+# 💰 Walleto API
 
-API REST desenvolvida a partir do projeto original **Walleto**, com foco no gerenciamento de gastos pessoais de forma estruturada, organizada e escalável.
-
----
-
-## Sobre o projeto
-
-O **Walleto API 1.0** é a evolução do projeto original **Walleto 2.0**, uma aplicação de finanças pessoais desenvolvida em Python com armazenamento em SQLite.
-
-A base original já conta com uma estrutura organizada, lógica funcional bem definida e recursos importantes para o gerenciamento financeiro, como cadastro, edição, remoção, consulta e validação de gastos.  
-Nesta nova etapa, a proposta é transformar essa base em uma **API**, preservando as regras de negócio já construídas e adaptando a arquitetura para um modelo mais escalável, reutilizável e preparado para integrações futuras.
+API REST para gerenciamento de gastos pessoais, desenvolvida com foco em organização, escalabilidade e boas práticas de backend.
 
 ---
 
-## Objetivo
+## 🚀 Sobre o projeto
 
-O objetivo do projeto é transformar o Walleto em um backend capaz de:
+O **Walleto API** é a evolução do projeto original **Walleto**, transformando uma aplicação local em um backend completo, preparado para integrações com aplicações web, mobile e dashboards.
 
-- centralizar as regras de negócio do sistema
-- disponibilizar operações por meio de endpoints
-- facilitar integração com interfaces web, aplicativos e dashboards
-- melhorar escalabilidade e manutenção do projeto
-- servir como base para futuras evoluções do ecossistema Walleto
+A API centraliza todas as regras de negócio e expõe funcionalidades através de endpoints bem definidos, seguindo princípios de arquitetura em camadas.
 
 ---
 
-## Origem do projeto
+## 🎯 Objetivo
 
-O **Walleto API 1.0** nasce a partir do código do **Walleto original**, que já possui:
-
-- registro de gastos com nome, valor, categoria, data e descrição
-- visualização de gastos por período e categoria
-- edição e remoção de registros
-- validações robustas de entrada
-- armazenamento local em SQLite
-- organização por camadas
-- base para testes automatizados
-
-A ideia não é recomeçar do zero, mas sim **evoluir uma base já redonda**, aproveitando a lógica existente e reorganizando o sistema para o contexto de API.
+- Centralizar regras de negócio em um backend robusto
+- Expor funcionalidades via API REST
+- Facilitar integração com frontends e serviços externos
+- Melhorar escalabilidade e manutenção do sistema
+- Servir como base para expansão do ecossistema Walleto
 
 ---
 
-## Funcionalidades previstas
+## ⚙️ Funcionalidades
 
-- cadastro de gastos
-- edição de gastos
-- remoção de registros
-- listagem de gastos
-- busca por filtros
-- organização por categorias
-- validação de dados de entrada e saída
-- base para relatórios e análises futuras
+- 🔐 Autenticação com JWT
+- 🔄 Refresh Token
+- 👤 Gestão de usuários
+- 💸 CRUD de gastos
+- 🔎 Filtros avançados de consulta
+- 📊 Exportação de relatórios (PDF e XLSX)
+- 📈 Dashboard interativo (Streamlit)
+- 🚦 Rate Limiting
+- 🧪 Testes automatizados com pytest
+- 🔁 CI/CD com GitHub Actions
 
 ---
 
-## Estrutura proposta
+## 🧱 Arquitetura
+
+O projeto segue uma arquitetura em camadas:
+
+- **API (routes)** → entrada da aplicação
+- **Services** → regras de negócio
+- **Repositories** → acesso a dados
+- **Models** → entidades
+- **Validators** → validações de domínio
+- **Infrastructure** → exportações e dashboard
+- **Core** → configurações e banco
+- **Utils** → utilitários
+
+---
+
+## 🗂 Estrutura do projeto
 
 ```bash
-walleto-api-1.0/
-├── .gitignore
-├── README.md
-├── requirements.txt
-├── main.py
-├── data/
-│   └── walleto.db
-├── docs/
-│   └── organizacao_projeto.md
-├── tests/
-│   ├── test_gasto_service.py
-│   ├── test_gasto_validators.py
-│   ├── test_gasto_repository.py
-│   └── test_usuario_validators.py
-└── src/
-    ├── api/
-    │   ├── main.py
-    │   ├── routes/
-    │   │   ├── gasto_routes.py
-    │   │   ├── usuario_routes.py
-    │   │   └── dashboard.py
-    │   └── schemas/
-    │       ├── gasto_schema.py
-    │       └── usuario_schema.py
-    │
-    ├── core/
-    │   ├── config.py
-    │   └── database.py
-    │
-    ├── models/
-    │   ├── gasto.py
-    │   └── usuario.py
-    │
-    ├── validators/
-    │   ├── gasto_validators.py
-    │   └── usuario_validators.py
-    │
-    ├── services/
-    │   ├── gasto_service.py
-    │   └── usuario_service.py
-    │
-    ├── repositories/
-    │   ├── gasto_repository.py
-    │   └── usuario_repository.py
-    │
-    ├── infrastructure/
-    │   ├── dashboard/
-    │   │   └── streamlit_dashboard.py
-    │   └── exporters/
-    │       ├── excel_exporter.py
-    │       └── pdf_exporter.py
-    │
-    └── utils/
-        └── formatters.py
+src/
+├── api/
+│   ├── routes/
+│   └── schemas/
+├── core/
+├── models/
+├── validators/
+├── services/
+├── repositories/
+├── infrastructure/
+│   ├── dashboard/
+│   └── exporters/
+└── utils/
+````
+
+---
+
+## 🛠 Tecnologias utilizadas
+
+* **Python 3.12**
+* **FastAPI**
+* **SQLite** (planejado PostgreSQL)
+* **Pydantic**
+* **JWT (Auth)**
+* **Streamlit**
+* **OpenPyXL / ReportLab**
+* **Pytest**
+* **GitHub Actions (CI)**
+
+---
+
+## ▶️ Como executar o projeto
+
+```bash
+# clonar o repositório
+git clone https://github.com/honoriio/walleto-api-1.0.git
+
+# entrar na pasta
+cd walleto-api-1.0
+
+# criar ambiente virtual
+python -m venv venv
+
+# ativar ambiente
+venv\Scripts\activate  # Windows
+source venv/bin/activate  # Linux/Mac
+
+# instalar dependências
+pip install -r requirements.txt
+
+# rodar a aplicação
+uvicorn src.api.main:app --reload
+```
+
+---
+
+## 📌 Documentação da API
+
+A documentação interativa está disponível em:
+
+```
+/docs
+```
+
+Swagger com todos os endpoints, parâmetros e respostas.
+
+---
+
+## 🧪 Testes
+
+```bash
+pytest -v
+```
+
+Testes automatizados garantem a integridade das regras de negócio e endpoints.
+
+---
+
+## 🔁 CI/CD
+
+O projeto utiliza **GitHub Actions** para:
+
+* execução automática dos testes
+* validação antes de merge
+* garantia de qualidade do código
+
+---
+
+## 🩺 Health Check
+
+```http
+GET /health
+```
+
+Retorna o status da API.
+
+---
+
+## 📈 Próximos passos
+
+* migração para PostgreSQL
+* implementação de cache (Redis)
+* melhorias em autenticação (refresh + revoke)
+* deploy com infraestrutura dedicada
+* versionamento da API
+
+---
+
+## 👨‍💻 Autor
+
+**Diego Honório**
+
+* GitHub: [https://github.com/honoriio](https://github.com/honoriio)
+
+---
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT.
