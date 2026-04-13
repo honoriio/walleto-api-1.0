@@ -1,4 +1,5 @@
 import logging
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import Request
 from src.core.rate_limiter import limiter
 from fastapi import APIRouter, HTTPException, Depends, logger
@@ -9,19 +10,26 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
-
-@router.post("/", response_model=AuthTokenResponse, status_code=200, summary="Realizar login", description="Autentica o usuário e retorna access token e refresh token.",)
+# Rota alterada para OAuth2PasswordRequestForm para facilitar login dos usuario para testar a api
+@router.post("/login", response_model=AuthTokenResponse, status_code=200, summary="Realizar login", description="Autentica o usuário e retorna access token e refresh token.")
 @limiter.limit("5/minute")
-def login_usuario_api(request: Request, dados_login: AuthLoginRequest):
-    logger.info("Login iniciado - email=%s", dados_login.email)
+def login_usuario_api(request: Request, form_data: OAuth2PasswordRequestForm = Depends(),):
+    logger.info("Login iniciado - username=%s", form_data.username)
+
     try:
+        dados_login = AuthLoginRequest(
+            email=form_data.username,
+            senha=form_data.password,
+        )
         return login_service(dados_login)
+
     except ValueError as erro:
         raise HTTPException(status_code=401, detail=str(erro))
+
     except Exception:
-        logger.exception("Erro inesperado na rota de login - email=%s", dados_login.email)
+        logger.exception("Erro inesperado na rota de login - username=%s", form_data.username)
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")
-    
+  
 
 @router.get("/me", response_model=AuthMeResponse, status_code=200,  summary="Obter usuário autenticado", description="Retorna os dados do usuário autenticado a partir do token JWT.")
 @limiter.limit("5/minute")
