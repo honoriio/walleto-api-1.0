@@ -10,7 +10,7 @@ from src.services.usuario_service import criar_usuario_service, desativar_usuari
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/usuario", tags=["Usuario"])
+router = APIRouter(prefix="/usuario", tags=["Usuários"])
 
 
 @router.post("/", response_model=UsuarioResponse, status_code=201,     summary="Cria um novo usuário",

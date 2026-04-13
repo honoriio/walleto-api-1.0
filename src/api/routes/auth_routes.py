@@ -7,7 +7,7 @@ from src.services.auth_service import login_service, get_current_user, refresh_t
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
+router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
 
 @router.post("/", response_model=AuthTokenResponse, status_code=200, summary="Realizar login", description="Autentica o usuário e retorna access token e refresh token.",)
@@ -37,7 +37,7 @@ def buscar_usuario_logado_api(request: Request, current_user=Depends(get_current
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")
     
 
-@router.post("/refresh", response_model=RefreshTokenResponse, status_code=200, summary="Refresh access token", description=(
+@router.post("/refresh", response_model=RefreshTokenResponse, status_code=200, summary="Atualiza token de acesso", description=(
     "Gera um novo access token utilizando um refresh token válido. "
     "O refresh token deve ser enviado no corpo da requisição. "
     "Caso o token seja inválido ou expirado, a requisição será rejeitada.."
