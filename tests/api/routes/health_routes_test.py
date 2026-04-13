@@ -4,5 +4,6 @@ def test_health_check_deve_retornar_status_ok(client):
     assert response.status_code == 200
     assert response.json() == {
         "status": "ok",
-        "service": "walleto-api"
+        "service": "walleto-api",
+        "version": "1.0.0"
     }
