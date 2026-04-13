@@ -68,7 +68,7 @@ def consultar_gastos_api(
     data_inicio: str | None = None,
     data_final: str | None = None,
     current_user: Usuario = Depends(get_current_user),
-):
+    ):
     logger.info(
         "Busca de gastos iniciada | usuario_id=%s",
         current_user.id,
@@ -132,7 +132,7 @@ def buscar_gasto_por_id_api(
     request: Request,
     gasto_id: int,
     current_user: Usuario = Depends(get_current_user),
-):
+    ):
     logger.info(
         "Busca de gasto por id iniciada | usuario_id=%s | gasto_id=%s",
         current_user.id,
@@ -183,7 +183,7 @@ def editar_gastos_api(
     gasto_id: int,
     dados: GastoUpdateRequest,
     current_user: Usuario = Depends(get_current_user),
-):
+    ):
     logger.info(
         "Edição de gasto iniciada | usuario_id=%s | gasto_id=%s",
         current_user.id,
@@ -233,7 +233,7 @@ def excluir_gastos_api(
     request: Request,
     gasto_id: int,
     current_user: Usuario = Depends(get_current_user),
-):
+    ):
     logger.info(
         "Exclusão de gasto iniciada | usuario_id=%s | gasto_id=%s",
         current_user.id,
