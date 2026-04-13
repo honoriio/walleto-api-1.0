@@ -13,7 +13,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/usuario", tags=["Usuario"])
 
 
-@router.post("/", response_model=UsuarioResponse, status_code=201)
+@router.post("/", response_model=UsuarioResponse, status_code=201,     summary="Cria um novo usuário",
+    description="""
+Cria uma nova conta de usuário no sistema.
+Retorna os dados do usuário criado.
+"""
+)
 @limiter.limit("3/minute")
 def criar_usuario_api(request: Request, dados: UsuarioCreateRequest):
     logger.info(f"Tentativa de criação de novo usuário | email={dados.email}")
@@ -32,7 +37,11 @@ def criar_usuario_api(request: Request, dados: UsuarioCreateRequest):
 
 
 #Consulta os dados do usuario logado
-@router.get("/me", response_model=UsuarioResponse, status_code=200)
+@router.get("/me", response_model=UsuarioResponse, status_code=200, summary="Obtém os dados do usuário autenticado",
+    description="""
+Retorna as informações do usuário atualmente autenticado.
+"""
+)
 def consultar_meu_usuario_api(current_user: Usuario = Depends(get_current_user)):
     logger.info(f"Usuário ID {current_user.id} solicitou seus próprios dados.")
     try:
@@ -54,7 +63,10 @@ def consultar_meu_usuario_api(current_user: Usuario = Depends(get_current_user))
 
 
 # Atualiza os dados do usuario logado, como, nome, data de nascimento, sexo e email.  em breve irei adicionar uma função de validar o email via codigo, para facilitar a troca do email e da senha
-@router.patch("/me", response_model=UsuarioResponse, status_code=200)
+@router.patch("/me", response_model=UsuarioResponse, status_code=200, summary="Atualiza os dados do usuário",
+    description="""
+Atualiza as informações do usuário autenticado, como nome, email e dados pessoais.
+""")
 @limiter.limit("10/minute")
 def editar_usuario_api(request: Request, dados: UsuarioUpdateRequest, current_user: Usuario = Depends(get_current_user)):
     campos_atualizados = dados.dict(exclude_unset=True)
@@ -109,7 +121,10 @@ def desativar_usuario_api(current_user: Usuario = Depends(get_current_user)):
 
 # Exclui permanentemente a conta do usuário autenticado.
 # Os dados relacionados, como os gastos, também são removidos automaticamente via cascade. 
-@router.delete("/me", status_code=204)
+@router.delete("/me", status_code=204,     summary="Exclui a conta do usuário",
+    description="""
+Remove permanentemente a conta do usuário autenticado e seus dados associados.
+""")
 @limiter.limit("1/hour")
 def excluir_usuario_api(request: Request, current_user: Usuario = Depends(get_current_user)):
     logger.info(f"Exclusão da conta do usuário iniciada | usuario_id={current_user.id}")
