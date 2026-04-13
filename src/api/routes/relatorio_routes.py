@@ -20,8 +20,7 @@ router = APIRouter(prefix="/relatorios", tags=["Relatórios"])
     description="""
 Gera um arquivo XLSX com os gastos do usuário autenticado.
 Permite aplicar filtros como nome, categoria, valor e intervalo de datas.
-"""
-)
+""", include_in_schema=False)
 @limiter.limit("15/hour")
 def exportar_gastos_xlsx_api(
     request: Request,
@@ -78,8 +77,7 @@ def exportar_gastos_xlsx_api(
     description="""
 Gera um arquivo PDF com os gastos do usuário autenticado.
 Permite aplicar filtros como nome, categoria, valor e intervalo de datas.
-"""
-)
+""", include_in_schema=False)
 @limiter.limit("15/hour")
 def exportar_gastos_pdf_api(
     request: Request,

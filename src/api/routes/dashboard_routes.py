@@ -17,7 +17,7 @@ description="""
 Inicializa o dashboard do usuário autenticado após preparar os dados necessários.
 
 Pode retornar erro caso não existam dados ou ocorra falha durante a inicialização.
-""")
+""", include_in_schema=False)
 @limiter.limit("10/hour")
 def iniciar_dashboard_api(request: Request, current_user: Usuario = Depends(get_current_user)):
     logger.info("Inicialização de dashboard solicitada | usuario_id=%s", current_user.id,)
@@ -48,7 +48,7 @@ def iniciar_dashboard_api(request: Request, current_user: Usuario = Depends(get_
 @router.post("/encerrar", summary="Encerra o dashboard do usuário",
 description="""
 Finaliza a execução do dashboard ativo do usuário autenticado.
-""")
+""", include_in_schema=False)
 
 @limiter.limit("10/hour", )
 def encerrar_dashboard_api(request: Request, current_user: Usuario = Depends(get_current_user)):
@@ -68,7 +68,7 @@ def encerrar_dashboard_api(request: Request, current_user: Usuario = Depends(get
 @router.get("/status", summary="Obtém o status do dashboard",
 description="""
 Retorna o estado atual do dashboard do usuário autenticado.
-""")
+""", include_in_schema=False)
 
 @limiter.limit("10/hour")
 def status_dashboard_api(request: Request, current_user: Usuario = Depends(get_current_user)):
