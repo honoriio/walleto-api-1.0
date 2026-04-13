@@ -25,7 +25,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/gastos", tags=["Gastos"])
 
 
-@router.post("/", response_model=GastoResponse, status_code=201)
+@router.post("/", response_model=GastoResponse, status_code=201, summary="Cria um novo gasto",
+    description="""
+Cria um novo gasto vinculado ao usuário autenticado.
+Retorna os dados do gasto criado.
+"""
+)
 @limiter.limit("10/minute")
 def criar_gastos_api(request: Request, dados: GastoCreateRequest, current_user: Usuario = Depends(get_current_user),):
     logger.info("Criação de gasto iniciada | usuario_id=%s", current_user.id,)
@@ -56,7 +61,12 @@ def criar_gastos_api(request: Request, dados: GastoCreateRequest, current_user: 
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")
 
 
-@router.get("/", response_model=GastoListResponse, status_code=200)
+@router.get("/", response_model=GastoListResponse, status_code=200, summary="Lista os gastos do usuário",
+    description="""
+Retorna os gastos do usuário autenticado.
+Permite aplicar filtros como nome, categoria, valor, descrição e intervalo de datas.
+"""
+)
 @limiter.limit("30/minute")
 def consultar_gastos_api(
     request: Request,
@@ -126,7 +136,12 @@ def consultar_gastos_api(
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")
 
 
-@router.get("/{gasto_id}", response_model=GastoResponse, status_code=200)
+@router.get("/{gasto_id}", response_model=GastoResponse, status_code=200, summary="Busca um gasto por ID",
+    description="""
+Retorna os dados de um gasto específico do usuário autenticado.
+A requisição falha caso o gasto não exista ou não pertença ao usuário.
+"""
+)
 @limiter.limit("30/minute")
 def buscar_gasto_por_id_api(
     request: Request,
@@ -176,7 +191,12 @@ def buscar_gasto_por_id_api(
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")
 
 
-@router.patch("/{gasto_id}", response_model=GastoResponse, status_code=200)
+@router.patch("/{gasto_id}", response_model=GastoResponse, status_code=200, summary="Edita um gasto",
+    description="""
+Atualiza os dados de um gasto do usuário autenticado.
+Retorna o gasto atualizado após a edição.
+"""
+)
 @limiter.limit("10/minute")
 def editar_gastos_api(
     request: Request,
@@ -227,7 +247,12 @@ def editar_gastos_api(
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")
 
 
-@router.delete("/{gasto_id}", status_code=204)
+@router.delete("/{gasto_id}", status_code=204,  summary="Exclui um gasto",
+    description="""
+Remove um gasto do usuário autenticado.
+Retorna resposta sem conteúdo em caso de sucesso.
+"""
+)
 @limiter.limit("5/minute")
 def excluir_gastos_api(
     request: Request,
