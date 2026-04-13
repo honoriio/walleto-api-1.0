@@ -28,8 +28,8 @@ class DummyUser:
 
 def test_login_usuario_api_deve_retornar_200_quando_login_for_valido(client, mocker):
     payload = {
-        "email": "diego@gmail.com",
-        "senha": "Senha123"
+        "username": "diego@gmail.com",
+        "password": "Senha123"
     }
 
     mock_login_service = mocker.patch(
@@ -41,7 +41,7 @@ def test_login_usuario_api_deve_retornar_200_quando_login_for_valido(client, moc
         }
     )
 
-    response = client.post("/auth/", json=payload)
+    response = client.post("/auth/login", data=payload)
 
     assert response.status_code == http_status.HTTP_200_OK
     assert response.json() == {
@@ -54,8 +54,8 @@ def test_login_usuario_api_deve_retornar_200_quando_login_for_valido(client, moc
 
 def test_login_usuario_api_deve_retornar_401_quando_service_lancar_value_error(client, mocker):
     payload = {
-        "email": "diego@gmail.com",
-        "senha": "SenhaErrada"
+        "username": "diego@gmail.com",
+        "password": "SenhaErrada"
     }
 
     mock_login_service = mocker.patch(
@@ -63,7 +63,7 @@ def test_login_usuario_api_deve_retornar_401_quando_service_lancar_value_error(c
         side_effect=ValueError("Email ou senha inválidos.")
     )
 
-    response = client.post("/auth/", json=payload)
+    response = client.post("/auth/login", data=payload)
 
     assert response.status_code == http_status.HTTP_401_UNAUTHORIZED
     assert response.json() == {
@@ -74,8 +74,8 @@ def test_login_usuario_api_deve_retornar_401_quando_service_lancar_value_error(c
 
 def test_login_usuario_api_deve_retornar_500_quando_ocorrer_erro_inesperado(client, mocker):
     payload = {
-        "email": "diego@gmail.com",
-        "senha": "Senha123"
+        "username": "diego@gmail.com",
+        "password": "Senha123"
     }
 
     mock_login_service = mocker.patch(
@@ -83,7 +83,7 @@ def test_login_usuario_api_deve_retornar_500_quando_ocorrer_erro_inesperado(clie
         side_effect=Exception("erro inesperado")
     )
 
-    response = client.post("/auth/", json=payload)
+    response = client.post("/auth/login", data=payload)
 
     assert response.status_code == http_status.HTTP_500_INTERNAL_SERVER_ERROR
     assert response.json() == {

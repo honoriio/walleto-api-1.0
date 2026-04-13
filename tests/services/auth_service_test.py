@@ -114,7 +114,7 @@ def test_verificar_senha_erro_interno(mocker):
 
 def test_login_api_sucesso(client, mocker):
     mocker.patch(
-        "src.services.auth_service.login_service",
+        "src.api.routes.auth_routes.login_service",
         return_value={
             "access_token": "fake",
             "refresh_token": "fake",
