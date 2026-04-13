@@ -4,6 +4,21 @@ API REST para gerenciamento de gastos pessoais, desenvolvida com foco em organiz
 
 ---
 
+## 📸 Preview
+
+### 🔧 API (Swagger)
+![Swagger](assets/swagger1.png)
+![Swagger](assets/swagger2.png)
+
+### 📊 Dashboard (em desenvolvimento)
+![Dashboard](assets/dashboard_resumo.png)
+![Dashboard](assets/dashboard_tabela.png)
+![Dashboard](assets/dashboard_grafico.png)
+
+> ⚠️ O dashboard está em evolução e será disponibilizado em ambiente próprio nas próximas versões.
+
+---
+
 ## 🚀 Sobre o projeto
 
 O **Walleto API** é a evolução do projeto original **Walleto**, transformando uma aplicação local em um backend completo, preparado para integrações com aplicações web, mobile e dashboards.
@@ -29,8 +44,6 @@ A API centraliza todas as regras de negócio e expõe funcionalidades através d
 - 👤 Gestão de usuários
 - 💸 CRUD de gastos
 - 🔎 Filtros avançados de consulta
-- 📊 Exportação de relatórios (PDF e XLSX)
-- 📈 Dashboard interativo (Streamlit)
 - 🚦 Rate Limiting
 - 🧪 Testes automatizados com pytest
 - 🔁 CI/CD com GitHub Actions
@@ -46,7 +59,7 @@ O projeto segue uma arquitetura em camadas:
 - **Repositories** → acesso a dados
 - **Models** → entidades
 - **Validators** → validações de domínio
-- **Infrastructure** → exportações e dashboard
+- **Infrastructure** → integrações externas (exportação e dashboard)
 - **Core** → configurações e banco
 - **Utils** → utilitários
 
@@ -79,10 +92,8 @@ src/
 * **SQLite** (planejado PostgreSQL)
 * **Pydantic**
 * **JWT (Auth)**
-* **Streamlit**
-* **OpenPyXL / ReportLab**
 * **Pytest**
-* **GitHub Actions (CI)**
+* **GitHub Actions (CI/CD)**
 
 ---
 
@@ -153,12 +164,13 @@ Retorna o status da API.
 
 ---
 
-## 📈 Próximos passos
+## 📈 Roadmap
 
 * migração para PostgreSQL
+* separação do dashboard como serviço independente
+* exportação de relatórios com download direto (PDF/XLSX)
 * implementação de cache (Redis)
 * melhorias em autenticação (refresh + revoke)
-* deploy com infraestrutura dedicada
 * versionamento da API
 
 ---
@@ -174,3 +186,7 @@ Retorna o status da API.
 ## 📄 Licença
 
 Este projeto está sob a licença MIT.
+
+````
+
+---
