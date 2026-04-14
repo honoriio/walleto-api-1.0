@@ -1,6 +1,8 @@
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 
+from fastapi.responses import StreamingResponse
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -216,14 +218,13 @@ def exportar_gastos_pdf(gastos):
     resumo_dados = calcular_resumo_gastos(registros_normalizados)
 
     mes_nome = meses[0] if meses else "sem_mes"
-
-    PASTA_DOCUMENTOS.mkdir(parents=True, exist_ok=True)
-
     nome_arquivo = f"despesas_{mes_nome}.pdf"
-    caminho_completo = PASTA_DOCUMENTOS / nome_arquivo
+
+
+    buffer = BytesIO()
 
     doc = SimpleDocTemplate(
-        str(caminho_completo),
+        buffer,  
         pagesize=landscape(A4),
         rightMargin=1 * cm,
         leftMargin=1 * cm,
@@ -252,6 +253,16 @@ def exportar_gastos_pdf(gastos):
     elementos.append(Spacer(1, 0.5 * cm))
     elementos.append(criar_tabela_resumo(resumo_dados))
 
+
     doc.build(elementos)
 
-    return str(caminho_completo)
+    buffer.seek(0)
+
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={nome_arquivo}"
+        }
+    )
