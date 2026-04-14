@@ -77,7 +77,7 @@ def exportar_gastos_xlsx_api(
     description="""
 Gera um arquivo PDF com os gastos do usuário autenticado.
 Permite aplicar filtros como nome, categoria, valor e intervalo de datas.
-""", include_in_schema=False)
+""", include_in_schema=True)
 @limiter.limit("15/hour")
 def exportar_gastos_pdf_api(
     request: Request,
