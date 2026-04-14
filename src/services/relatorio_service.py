@@ -29,11 +29,7 @@ def exportar_gastos_xlsx_service(
     if not gastos:
         raise ValueError("Não há gastos para exportação.")
 
-    caminho_arquivo = exportar_gastos_excel(gastos)
-
-    return {
-        "arquivo": str(caminho_arquivo)
-    }
+    return exportar_gastos_excel(gastos)
 
 
 def exportar_gastos_pdf_services(
@@ -62,8 +58,5 @@ def exportar_gastos_pdf_services(
     if not gastos:
         raise ValueError("Não há gastos para exportação.")
 
-    caminho_arquivo = exportar_gastos_pdf(gastos)
+    return exportar_gastos_pdf(gastos)
 
-    return {
-        "arquivo": str(caminho_arquivo)
-    }

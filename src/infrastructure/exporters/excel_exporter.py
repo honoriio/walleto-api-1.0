@@ -1,4 +1,7 @@
 from datetime import datetime, date
+from io import BytesIO
+
+from fastapi.responses import StreamingResponse
 from src.core.config import PASTA_DOCUMENTOS
 
 from openpyxl import Workbook
@@ -269,13 +272,18 @@ def exportar_gastos_excel(gastos):
     criar_aba_resumo(workbook, resumo_dados)
 
     mes_nome = meses[0] if meses else "sem_mes"
-
-    
-    PASTA_DOCUMENTOS.mkdir(parents=True, exist_ok=True)
-
     nome_arquivo = f"despesas_{mes_nome}.xlsx"
-    caminho_completo = PASTA_DOCUMENTOS / nome_arquivo
 
-    workbook.save(caminho_completo)
 
-    return str(caminho_completo)
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
+
+
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f"attachment; filename={nome_arquivo}"
+        }
+    )
