@@ -12,3 +12,5 @@ tqdm==4.67.3
 reportlab==4.4.10
 email-validator==2.3.0
 python-multipart
+pandas
+requests
