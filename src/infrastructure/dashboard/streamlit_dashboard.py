@@ -152,7 +152,7 @@ def renderizar_dashboard(caminho_arquivo: str | Path | None = None) -> None:
 
     try:
         response = requests.get(
-            f"{API_URL}/usuarios/me",
+            f"{API_URL}/usuario/me",
             headers=headers,
             timeout=10
         )
