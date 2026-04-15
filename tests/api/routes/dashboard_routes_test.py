@@ -23,6 +23,16 @@ def override_user():
 # TESTES - POST /dashboard/iniciar
 # =========================================================
 
+# mock user válido
+def override_user():
+    class User:
+        id = 1
+    return User()
+
+
+# =========================================================
+# SUCESSO - deve redirecionar com token
+# =========================================================
 def test_iniciar_dashboard_api_deve_redirecionar_quando_sucesso(client, mocker):
     app.dependency_overrides[get_current_user] = override_user
 
@@ -37,10 +47,14 @@ def test_iniciar_dashboard_api_deve_redirecionar_quando_sucesso(client, mocker):
     app.dependency_overrides.clear()
 
     assert response.status_code in (302, 307)
+    assert "dashboard-dwgn.onrender.com" in response.headers["location"]
     assert "token=token123" in response.headers["location"]
 
 
-def test_iniciar_dashboard_api_deve_retornar_401_sem_authorization(client, mocker):
+# =========================================================
+# ERRO 401 - sem Authorization
+# =========================================================
+def test_iniciar_dashboard_api_deve_retornar_401_sem_authorization(client):
     app.dependency_overrides[get_current_user] = override_user
 
     response = client.post(
@@ -54,13 +68,17 @@ def test_iniciar_dashboard_api_deve_retornar_401_sem_authorization(client, mocke
     assert response.json() == {"detail": "Não autenticado"}
 
 
+# =========================================================
+# ERRO 500 - exceção inesperada no endpoint
+# =========================================================
 def test_iniciar_dashboard_api_deve_retornar_500_quando_erro_inesperado(client, mocker):
     app.dependency_overrides[get_current_user] = override_user
 
-    # mocka só o get()
-    mock_request = mocker.patch(
-        "starlette.datastructures.Headers.get",
-        side_effect=Exception("erro inesperado")
+    # mock correto: request.headers.get (não Headers.get)
+    mocker.patch(
+        "starlette.requests.Request.headers",
+        new_callable=mocker.PropertyMock,
+        return_value={}
     )
 
     response = client.post(
