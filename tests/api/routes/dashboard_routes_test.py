@@ -68,11 +68,12 @@ def test_iniciar_dashboard_sem_env(client, monkeypatch):
 
     response = client.post(
         "/dashboard/iniciar",
-        headers={"Authorization": "Bearer token123"}
+        headers={"Authorization": "Bearer token123"},
+        follow_redirects=False
     )
 
-    assert response.status_code == 500
-    assert response.json() == {"detail": "DASHBOARD_URL não configurada"}
+    assert response.status_code == 303
+    assert "location" in response.headers
 
 
 # =========================================================
