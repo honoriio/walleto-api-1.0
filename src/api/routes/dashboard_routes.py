@@ -15,20 +15,28 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
-@router.post("/dashboard/iniciar", include_in_schema=True)
+@router.post("/iniciar", include_in_schema=True)
 @limiter.limit("10/hour")
-def iniciar_dashboard_api(request: Request, current_user: Usuario = Depends(get_current_user)):
+def iniciar_dashboard_api(
+    request: Request,
+    current_user: Usuario = Depends(get_current_user)
+):
     logger.info("Redirecionando para dashboard | usuario_id=%s", current_user.id)
 
     try:
-        token = request.headers.get("Authorization")
+        auth_header = request.headers.get("Authorization")
 
-        if not token:
+        if not auth_header:
             raise HTTPException(status_code=401, detail="Não autenticado")
 
-        token = token.replace("Bearer ", "")
+        token = auth_header.replace("Bearer ", "")
 
-        dashboard_url = (f"{os.getenv('DASHBOARD_URL')}?token={token}")
+        base_url = os.getenv("DASHBOARD_URL")
+
+        if not base_url:
+            raise HTTPException(status_code=500, detail="DASHBOARD_URL não configurada")
+
+        dashboard_url = f"{base_url}?token={token}"
 
         return RedirectResponse(url=dashboard_url, status_code=307)
 

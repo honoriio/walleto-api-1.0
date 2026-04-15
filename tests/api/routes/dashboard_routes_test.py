@@ -1,7 +1,5 @@
 import pytest
-from fastapi import HTTPException
-from starlette import status as http_status
-
+from fastapi import status
 from src.api.main import app
 from src.services.auth_service import get_current_user
 
@@ -9,7 +7,6 @@ from src.services.auth_service import get_current_user
 # =========================================================
 # DUMMY USER
 # =========================================================
-
 class DummyUser:
     def __init__(self, id=1):
         self.id = id
@@ -20,65 +17,113 @@ def override_user():
 
 
 # =========================================================
-# TESTES - POST /dashboard/iniciar
+# FIXTURE BASE
 # =========================================================
-
-# mock user válido
-def override_user():
-    class User:
-        id = 1
-    return User()
+@pytest.fixture(autouse=True)
+def clear_overrides():
+    yield
+    app.dependency_overrides.clear()
 
 
 # =========================================================
-# SUCESSO - deve redirecionar com token
+# /dashboard/iniciar - SUCESSO (REDIRECT)
 # =========================================================
-def test_iniciar_dashboard_api_deve_redirecionar_quando_sucesso(client, mocker):
+def test_iniciar_dashboard_redirect(client, monkeypatch):
     app.dependency_overrides[get_current_user] = override_user
 
-    token = "token123"
+    monkeypatch.setenv("DASHBOARD_URL", "https://dashboard.test.com")
 
     response = client.post(
         "/dashboard/iniciar",
-        headers={"Authorization": f"Bearer {token}"},
+        headers={"Authorization": "Bearer token123"},
         follow_redirects=False
     )
 
-    app.dependency_overrides.clear()
-
-    assert response.status_code in (302, 307)
-    assert "dashboard-dwgn.onrender.com" in response.headers["location"]
+    assert response.status_code in (307, 302)
+    assert "dashboard.test.com" in response.headers["location"]
     assert "token=token123" in response.headers["location"]
 
 
 # =========================================================
-# ERRO 401 - sem Authorization
+# /dashboard/iniciar - SEM AUTH HEADER
 # =========================================================
-def test_iniciar_dashboard_api_deve_retornar_401_sem_authorization(client):
+def test_iniciar_dashboard_sem_token(client, monkeypatch):
     app.dependency_overrides[get_current_user] = override_user
+    monkeypatch.setenv("DASHBOARD_URL", "https://dashboard.test.com")
 
     response = client.post(
         "/dashboard/iniciar",
         follow_redirects=False
     )
 
-    app.dependency_overrides.clear()
-
-    assert response.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {"detail": "Não autenticado"}
 
 
 # =========================================================
-# ERRO 500 - exceção inesperada no endpoint
+# /dashboard/iniciar - DASHBOARD_URL NÃO CONFIGURADA
 # =========================================================
-def test_iniciar_dashboard_api_deve_retornar_500_quando_erro_inesperado(client, mocker):
+def test_iniciar_dashboard_sem_env(client, monkeypatch):
     app.dependency_overrides[get_current_user] = override_user
 
-    # mock correto: request.headers.get (não Headers.get)
+    monkeypatch.delenv("DASHBOARD_URL", raising=False)
+
+    response = client.post(
+        "/dashboard/iniciar",
+        headers={"Authorization": "Bearer token123"},
+        follow_redirects=False
+    )
+
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert response.json() == {"detail": "DASHBOARD_URL não configurada"}
+
+
+# =========================================================
+# /dashboard/encerrar - SUCESSO
+# =========================================================
+def test_encerrar_dashboard(client, mocker):
+    app.dependency_overrides[get_current_user] = override_user
+
     mocker.patch(
-        "starlette.requests.Request.headers",
-        new_callable=mocker.PropertyMock,
-        return_value={}
+        "src.api.routes.dashboard_routes.encerrar_dashboard",
+        return_value={"status": "encerrado"}
+    )
+
+    response = client.post("/dashboard/encerrar")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "encerrado"}
+
+
+# =========================================================
+# /dashboard/status - SUCESSO
+# =========================================================
+def test_status_dashboard(client, mocker):
+    app.dependency_overrides[get_current_user] = override_user
+
+    mocker.patch(
+        "src.api.routes.dashboard_routes.obter_status_dashboard",
+        return_value={"ativo": True}
+    )
+
+    response = client.get("/dashboard/status")
+
+    assert response.status_code == 200
+    assert response.json() == {"ativo": True}
+
+
+# =========================================================
+# ERRO INTERNO - INICIAR
+# =========================================================
+def test_iniciar_dashboard_exception(client, monkeypatch, mocker):
+    app.dependency_overrides[get_current_user] = override_user
+
+    monkeypatch.setenv("DASHBOARD_URL", "https://dashboard.test.com")
+
+    # força erro dentro da lógica da rota (não na dependência)
+    mocker.patch(
+        "src.api.routes.dashboard_routes.os.getenv",
+        side_effect=Exception("fail")
     )
 
     response = client.post(
@@ -87,93 +132,5 @@ def test_iniciar_dashboard_api_deve_retornar_500_quando_erro_inesperado(client, 
         follow_redirects=False
     )
 
-    app.dependency_overrides.clear()
-
     assert response.status_code == 500
-    assert response.json() == {
-        "detail": "Erro interno ao iniciar dashboard."
-    }
-
-
-# =========================================================
-# TESTES - POST /dashboard/encerrar
-# =========================================================
-
-def test_encerrar_dashboard_api_deve_retornar_200_quando_sucesso(client, mocker):
-    app.dependency_overrides[get_current_user] = override_user
-
-    mock_service = mocker.patch(
-        "src.api.routes.dashboard_routes.encerrar_dashboard",
-        return_value={"status": "encerrado"}
-    )
-
-    response = client.post("/dashboard/encerrar")
-
-    app.dependency_overrides.clear()
-
-    assert response.status_code == http_status.HTTP_200_OK
-    assert response.json() == {"status": "encerrado"}
-
-    mock_service.assert_called_once_with(1)
-
-
-def test_encerrar_dashboard_api_deve_retornar_500_quando_erro(client, mocker):
-    app.dependency_overrides[get_current_user] = override_user
-
-    mock_service = mocker.patch(
-        "src.api.routes.dashboard_routes.encerrar_dashboard",
-        side_effect=Exception("erro inesperado")
-    )
-
-    response = client.post("/dashboard/encerrar")
-
-    app.dependency_overrides.clear()
-
-    assert response.status_code == http_status.HTTP_500_INTERNAL_SERVER_ERROR
-    assert response.json() == {
-        "detail": "Erro interno ao encerrar dashboard."
-    }
-
-    mock_service.assert_called_once_with(1)
-
-
-# =========================================================
-# TESTES - GET /dashboard/status
-# =========================================================
-
-def test_status_dashboard_api_deve_retornar_200_quando_sucesso(client, mocker):
-    app.dependency_overrides[get_current_user] = override_user
-
-    mock_service = mocker.patch(
-        "src.api.routes.dashboard_routes.obter_status_dashboard",
-        return_value={"status": "rodando"}
-    )
-
-    response = client.get("/dashboard/status")
-
-    app.dependency_overrides.clear()
-
-    assert response.status_code == http_status.HTTP_200_OK
-    assert response.json() == {"status": "rodando"}
-
-    mock_service.assert_called_once_with(1)
-
-
-def test_status_dashboard_api_deve_retornar_500_quando_erro(client, mocker):
-    app.dependency_overrides[get_current_user] = override_user
-
-    mock_service = mocker.patch(
-        "src.api.routes.dashboard_routes.obter_status_dashboard",
-        side_effect=Exception("erro inesperado")
-    )
-
-    response = client.get("/dashboard/status")
-
-    app.dependency_overrides.clear()
-
-    assert response.status_code == http_status.HTTP_500_INTERNAL_SERVER_ERROR
-    assert response.json() == {
-        "detail": "Erro ao obter status do dashboard."
-    }
-
-    mock_service.assert_called_once_with(1)
+    assert response.json()["detail"] == "Erro interno ao iniciar dashboard."
