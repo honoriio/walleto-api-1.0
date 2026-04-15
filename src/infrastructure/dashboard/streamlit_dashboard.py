@@ -142,7 +142,6 @@ def renderizar_dashboard(caminho_arquivo: str | Path | None = None) -> None:
         st.error("Acesso não autorizado")
         st.stop()
 
-    # 🔥 FIX: API_URL protegido (evita crash em deploy)
     API_URL = os.getenv("API_URL")
     if not API_URL:
         st.error("API_URL não configurada no ambiente")
@@ -152,7 +151,7 @@ def renderizar_dashboard(caminho_arquivo: str | Path | None = None) -> None:
 
     try:
         response = requests.get(
-            f"{API_URL}/usuario/me",
+            f"{API_URL}/usuario/me",  # FIX: rota correta confirmada
             headers=headers,
             timeout=10
         )
@@ -160,8 +159,17 @@ def renderizar_dashboard(caminho_arquivo: str | Path | None = None) -> None:
         st.error("Falha ao conectar na API")
         st.stop()
 
-    if response.status_code != 200:
+    # 🔥 FIX IMPORTANTE: tratamento correto de erro HTTP
+    if response.status_code == 401:
         st.error("Token inválido ou expirado")
+        st.stop()
+
+    if response.status_code == 404:
+        st.error("Endpoint /usuario/me não encontrado na API (verifique deploy)")
+        st.stop()
+
+    if response.status_code != 200:
+        st.error(f"Erro inesperado na API ({response.status_code})")
         st.stop()
 
     usuario = response.json()
@@ -264,7 +272,6 @@ def renderizar_dashboard(caminho_arquivo: str | Path | None = None) -> None:
     df_exibicao["Valor"] = df_exibicao["Valor"].apply(formatar_moeda_brl)
 
     st.dataframe(df_exibicao, width="stretch")
-
 
 def porta_esta_ativa(host: str, porta: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
