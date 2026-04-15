@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, Depends, HTTPException
 import logging
 
@@ -14,30 +16,28 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
-@router.post("/iniciar", summary="Inicia o dashboard do usuário", include_in_schema=True)
+@router.post("/dashboard/iniciar", include_in_schema=True)
 @limiter.limit("10/hour")
 def iniciar_dashboard_api(request: Request, current_user: Usuario = Depends(get_current_user)):
-    logger.info("Inicialização de dashboard solicitada | usuario_id=%s",current_user.id)
+    logger.info("Redirecionando para dashboard | usuario_id=%s", current_user.id)
 
     try:
-        auth_header = request.headers.get("Authorization")
+        token = request.headers.get("Authorization")
 
-        if not auth_header:
+        if not token:
             raise HTTPException(status_code=401, detail="Não autenticado")
 
-        token = auth_header.replace("Bearer ", "")
+        token = token.replace("Bearer ", "")
 
-        dashboard_url = f"https://dashboard-dwgn.onrender.com/?token={token}"
+        dashboard_url = (f"{os.getenv('DASHBOARD_URL')}?token={token}")
 
-        logger.info("Redirecionando para dashboard | usuario_id=%s",current_user.id)
-
-        return RedirectResponse(url=dashboard_url)
+        return RedirectResponse(url=dashboard_url, status_code=307)
 
     except HTTPException:
         raise
 
     except Exception:
-        logger.exception("Erro inesperado ao iniciar dashboard | usuario_id=%s", current_user.id)
+        logger.exception("Erro ao iniciar dashboard | usuario_id=%s", current_user.id)
         raise HTTPException(status_code=500, detail="Erro interno ao iniciar dashboard.")
 
 
