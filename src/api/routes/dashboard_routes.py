@@ -25,29 +25,37 @@ def iniciar_dashboard_api(
 
     try:
         auth_header = request.headers.get("Authorization")
-
         if not auth_header:
             raise HTTPException(status_code=401, detail="Não autenticado")
 
         token = auth_header.replace("Bearer ", "").strip()
 
         base_url = os.getenv("DASHBOARD_URL")
-
         if not base_url:
             raise HTTPException(status_code=500, detail="DASHBOARD_URL não configurada")
 
-        dashboard_url = f"{base_url}?token={token}"
+        # garante formato correto da URL
+        dashboard_url = f"{base_url.rstrip('/')}/?token={token}"
+
+        logger.info(
+            "Redirecionando usuário para dashboard_url=%s user_id=%s",
+            dashboard_url,
+            current_user.id
+        )
 
         return RedirectResponse(
             url=dashboard_url,
-            status_code=307
+            status_code=303  # melhor que 307 para GET de navegação
         )
 
     except HTTPException:
         raise
 
     except Exception:
-        logger.exception("Erro ao iniciar dashboard | usuario_id=%s", current_user.id)
+        logger.exception(
+            "Erro ao iniciar dashboard | usuario_id=%s",
+            current_user.id
+        )
         raise HTTPException(status_code=500, detail="Erro interno ao iniciar dashboard.")
 
 
