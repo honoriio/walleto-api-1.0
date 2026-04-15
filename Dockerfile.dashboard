@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY . .
+COPY . /app
 
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -10,4 +10,4 @@ ENV PYTHONPATH=/app
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "streamlit run src/infrastructure/dashboard/streamlit_dashboard.py --server.address=0.0.0.0 --server.port=$PORT"]
+CMD ["python", "src/main_dashboard.py"]
