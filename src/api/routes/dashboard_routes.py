@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 import logging
+
+from fastapi.responses import RedirectResponse
 from src.infrastructure.dashboard.streamlit_dashboard import encerrar_dashboard, obter_status_dashboard
 from src.models.usuario import Usuario
 from fastapi import Request
@@ -12,38 +14,31 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
-@router.post("/iniciar", summary="Inicia o dashboard do usuário",
-description="""
-Inicializa o dashboard do usuário autenticado após preparar os dados necessários.
-
-Pode retornar erro caso não existam dados ou ocorra falha durante a inicialização.
-""", include_in_schema=False)
+@router.post("/iniciar", summary="Inicia o dashboard do usuário", include_in_schema=True)
 @limiter.limit("10/hour")
 def iniciar_dashboard_api(request: Request, current_user: Usuario = Depends(get_current_user)):
-    logger.info("Inicialização de dashboard solicitada | usuario_id=%s", current_user.id,)
+    logger.info("Inicialização de dashboard solicitada | usuario_id=%s",current_user.id)
 
     try:
-        resultado = iniciar_dashboard_com_exportacao(current_user.id)
+        auth_header = request.headers.get("Authorization")
 
-        logger.info("Dashboard iniciado com sucesso | usuario_id=%s", current_user.id,)
-        return resultado
+        if not auth_header:
+            raise HTTPException(status_code=401, detail="Não autenticado")
 
-    except FileNotFoundError as erro:
-        logger.warning("Falha ao iniciar dashboard | arquivo de exportação não encontrado | usuario_id=%s | erro=%s", current_user.id, erro,)
-        raise HTTPException(status_code=404, detail=str(erro))
+        token = auth_header.replace("Bearer ", "")
 
-    except ValueError as erro:
-        logger.warning("Falha ao iniciar dashboard por validação | usuario_id=%s | erro=%s", current_user.id, erro,)
-        raise HTTPException(status_code=400, detail=str(erro))
+        dashboard_url = f"https://dashboard-dwgn.onrender.com/?token={token}"
 
-    except RuntimeError as erro:
-        logger.warning("Falha ao iniciar dashboard | erro de execução | usuario_id=%s | erro=%s", current_user.id, erro,)
-        raise HTTPException(status_code=500, detail=str(erro))
+        logger.info("Redirecionando para dashboard | usuario_id=%s",current_user.id)
+
+        return RedirectResponse(url=dashboard_url)
+
+    except HTTPException:
+        raise
 
     except Exception:
         logger.exception("Erro inesperado ao iniciar dashboard | usuario_id=%s", current_user.id)
         raise HTTPException(status_code=500, detail="Erro interno ao iniciar dashboard.")
-
 
 @router.post("/encerrar", summary="Encerra o dashboard do usuário",
 description="""

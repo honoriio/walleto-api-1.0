@@ -23,96 +23,58 @@ def override_user():
 # TESTES - POST /dashboard/iniciar
 # =========================================================
 
-def test_iniciar_dashboard_api_deve_retornar_200_quando_sucesso(client, mocker):
+def test_iniciar_dashboard_api_deve_redirecionar_quando_sucesso(client, mocker):
     app.dependency_overrides[get_current_user] = override_user
 
-    mock_service = mocker.patch(
-        "src.api.routes.dashboard_routes.iniciar_dashboard_com_exportacao",
-        return_value={"status": "iniciado"}
-    )
+    token = "token123"
 
-    response = client.post("/dashboard/iniciar")
+    response = client.post(
+        "/dashboard/iniciar",
+        headers={"Authorization": f"Bearer {token}"},
+        follow_redirects=False
+    )
 
     app.dependency_overrides.clear()
 
-    assert response.status_code == http_status.HTTP_200_OK
-    assert response.json() == {"status": "iniciado"}
-
-    mock_service.assert_called_once_with(1)
+    assert response.status_code in (302, 307)
+    assert "token=token123" in response.headers["location"]
 
 
-def test_iniciar_dashboard_api_deve_retornar_404_quando_file_not_found(client, mocker):
+def test_iniciar_dashboard_api_deve_retornar_401_sem_authorization(client, mocker):
     app.dependency_overrides[get_current_user] = override_user
 
-    mock_service = mocker.patch(
-        "src.api.routes.dashboard_routes.iniciar_dashboard_com_exportacao",
-        side_effect=FileNotFoundError("Arquivo não encontrado")
+    response = client.post(
+        "/dashboard/iniciar",
+        follow_redirects=False
     )
-
-    response = client.post("/dashboard/iniciar")
 
     app.dependency_overrides.clear()
 
-    assert response.status_code == http_status.HTTP_404_NOT_FOUND
-    assert response.json() == {"detail": "Arquivo não encontrado"}
-
-    mock_service.assert_called_once_with(1)
-
-
-def test_iniciar_dashboard_api_deve_retornar_400_quando_value_error(client, mocker):
-    app.dependency_overrides[get_current_user] = override_user
-
-    mock_service = mocker.patch(
-        "src.api.routes.dashboard_routes.iniciar_dashboard_com_exportacao",
-        side_effect=ValueError("Sem dados para exportar")
-    )
-
-    response = client.post("/dashboard/iniciar")
-
-    app.dependency_overrides.clear()
-
-    assert response.status_code == http_status.HTTP_400_BAD_REQUEST
-    assert response.json() == {"detail": "Sem dados para exportar"}
-
-    mock_service.assert_called_once_with(1)
-
-
-def test_iniciar_dashboard_api_deve_retornar_500_quando_runtime_error(client, mocker):
-    app.dependency_overrides[get_current_user] = override_user
-
-    mock_service = mocker.patch(
-        "src.api.routes.dashboard_routes.iniciar_dashboard_com_exportacao",
-        side_effect=RuntimeError("Erro interno")
-    )
-
-    response = client.post("/dashboard/iniciar")
-
-    app.dependency_overrides.clear()
-
-    assert response.status_code == http_status.HTTP_500_INTERNAL_SERVER_ERROR
-    assert response.json() == {"detail": "Erro interno"}
-
-    mock_service.assert_called_once_with(1)
+    assert response.status_code == http_status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {"detail": "Não autenticado"}
 
 
 def test_iniciar_dashboard_api_deve_retornar_500_quando_erro_inesperado(client, mocker):
     app.dependency_overrides[get_current_user] = override_user
 
-    mock_service = mocker.patch(
-        "src.api.routes.dashboard_routes.iniciar_dashboard_com_exportacao",
+    # mocka só o get()
+    mock_request = mocker.patch(
+        "starlette.datastructures.Headers.get",
         side_effect=Exception("erro inesperado")
     )
 
-    response = client.post("/dashboard/iniciar")
+    response = client.post(
+        "/dashboard/iniciar",
+        headers={"Authorization": "Bearer token123"},
+        follow_redirects=False
+    )
 
     app.dependency_overrides.clear()
 
-    assert response.status_code == http_status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert response.status_code == 500
     assert response.json() == {
         "detail": "Erro interno ao iniciar dashboard."
     }
-
-    mock_service.assert_called_once_with(1)
 
 
 # =========================================================
