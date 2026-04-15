@@ -39,8 +39,8 @@ def test_iniciar_dashboard_redirect(client, monkeypatch):
         follow_redirects=False
     )
 
-    assert response.status_code == 307
-    assert response.headers["location"].startswith("https://dashboard.test.com")
+    assert response.status_code == 303
+    assert response.headers["location"].startswith("https://dashboard.test.com/")
     assert "token=token123" in response.headers["location"]
 
 
