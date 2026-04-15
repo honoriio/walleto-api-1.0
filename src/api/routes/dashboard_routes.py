@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 import logging
 
 from fastapi.responses import RedirectResponse
+from requests.compat import quote
 from src.infrastructure.dashboard.streamlit_dashboard import encerrar_dashboard, obter_status_dashboard
 from src.models.usuario import Usuario
 from fastapi import Request
@@ -35,7 +36,7 @@ def iniciar_dashboard_api(
             raise HTTPException(status_code=500, detail="DASHBOARD_URL não configurada")
 
         # garante formato correto da URL
-        dashboard_url = f"{base_url.rstrip('/')}/?token={token}"
+        dashboard_url = f"https://dashboard-dwgn.onrender.com/?token={quote(token)}"
 
         logger.info(
             "Redirecionando usuário para dashboard_url=%s user_id=%s",
