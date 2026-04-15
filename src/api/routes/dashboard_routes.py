@@ -31,13 +31,13 @@ def iniciar_dashboard_api(
 
         token = auth_header.replace("Bearer ", "").strip()
 
-        base_url = os.getenv("DASHBOARD_URL").rstrip("/")
+        base_url = os.getenv("DASHBOARD_URL", "https://dashboard-dwgn.onrender.com")
 
         if not base_url:
             raise HTTPException(status_code=500, detail="DASHBOARD_URL não configurada")
 
         # garante formato correto da URL
-        dashboard_url = f"{base_url}/dashboard?token={token}"
+        dashboard_url = urljoin(base_url + "/", f"?token={quote(token)}")
 
         logger.info(
             "Redirecionando usuário para dashboard_url=%s user_id=%s",
