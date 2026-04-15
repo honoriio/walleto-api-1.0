@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import os
+import requests
+import streamlit as st
+
 import json
 import os
 import signal
@@ -134,8 +138,28 @@ def carregar_dados_excel(caminho_arquivo: str | Path) -> pd.DataFrame:
 
 
 def renderizar_dashboard(caminho_arquivo: str | Path | None = None) -> None:
+    token = st.query_params.get("token")
+
+    if not token:
+        st.error("Acesso não autorizado")
+        st.stop()
+
+    API_URL = os.getenv("API_URL")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = requests.get(
+        f"{API_URL}/usuarios/me",
+        headers=headers
+    )
+
+    if response.status_code != 200:
+        st.error("Token inválido ou expirado")
+        st.stop()
+
+    usuario = response.json()
+
     st.set_page_config(page_title="Walleto Dashboard", layout="wide")
-    st.title("Dashboard Financeiro - Walleto")
+    st.title(f"Dashboard Financeiro - {usuario.get('email', '')}")
 
     if caminho_arquivo is None:
         caminho_arquivo = ler_caminho_arquivo_dashboard()
