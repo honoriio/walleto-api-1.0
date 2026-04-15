@@ -39,9 +39,11 @@ def test_iniciar_dashboard_redirect(client, monkeypatch):
         follow_redirects=False
     )
 
-    assert response.status_code in (307, 302)
-    assert "dashboard.test.com" in response.headers["location"]
-    assert "token=token123" in response.headers["location"]
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "dashboard_url": "https://dashboard.test.com?token=token123"
+    }
 
 
 # =========================================================
@@ -49,6 +51,7 @@ def test_iniciar_dashboard_redirect(client, monkeypatch):
 # =========================================================
 def test_iniciar_dashboard_sem_token(client, monkeypatch):
     app.dependency_overrides[get_current_user] = override_user
+
     monkeypatch.setenv("DASHBOARD_URL", "https://dashboard.test.com")
 
     response = client.post(
@@ -56,7 +59,7 @@ def test_iniciar_dashboard_sem_token(client, monkeypatch):
         follow_redirects=False
     )
 
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.status_code == 401
     assert response.json() == {"detail": "Não autenticado"}
 
 
@@ -74,7 +77,7 @@ def test_iniciar_dashboard_sem_env(client, monkeypatch):
         follow_redirects=False
     )
 
-    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert response.status_code == 500
     assert response.json() == {"detail": "DASHBOARD_URL não configurada"}
 
 
