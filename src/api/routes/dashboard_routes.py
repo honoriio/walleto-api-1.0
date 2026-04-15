@@ -29,7 +29,7 @@ def iniciar_dashboard_api(
         if not auth_header:
             raise HTTPException(status_code=401, detail="Não autenticado")
 
-        token = auth_header.replace("Bearer ", "")
+        token = auth_header.replace("Bearer ", "").strip()
 
         base_url = os.getenv("DASHBOARD_URL")
 
@@ -38,9 +38,10 @@ def iniciar_dashboard_api(
 
         dashboard_url = f"{base_url}?token={token}"
 
-        return {
-            "dashboard_url": dashboard_url
-        }
+        return RedirectResponse(
+            url=dashboard_url,
+            status_code=307
+        )
 
     except HTTPException:
         raise

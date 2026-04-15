@@ -39,11 +39,9 @@ def test_iniciar_dashboard_redirect(client, monkeypatch):
         follow_redirects=False
     )
 
-    assert response.status_code == 200
-
-    assert response.json() == {
-        "dashboard_url": "https://dashboard.test.com?token=token123"
-    }
+    assert response.status_code == 307
+    assert response.headers["location"].startswith("https://dashboard.test.com")
+    assert "token=token123" in response.headers["location"]
 
 
 # =========================================================
@@ -54,10 +52,7 @@ def test_iniciar_dashboard_sem_token(client, monkeypatch):
 
     monkeypatch.setenv("DASHBOARD_URL", "https://dashboard.test.com")
 
-    response = client.post(
-        "/dashboard/iniciar",
-        follow_redirects=False
-    )
+    response = client.post("/dashboard/iniciar")
 
     assert response.status_code == 401
     assert response.json() == {"detail": "Não autenticado"}
@@ -73,8 +68,7 @@ def test_iniciar_dashboard_sem_env(client, monkeypatch):
 
     response = client.post(
         "/dashboard/iniciar",
-        headers={"Authorization": "Bearer token123"},
-        follow_redirects=False
+        headers={"Authorization": "Bearer token123"}
     )
 
     assert response.status_code == 500
