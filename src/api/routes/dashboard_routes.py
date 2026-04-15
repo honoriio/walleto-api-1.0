@@ -45,7 +45,8 @@ def iniciar_dashboard_api(
 
         return RedirectResponse(
             url=dashboard_url,
-            status_code=303  # melhor que 307 para GET de navegação
+            status_code=303,
+            headers={"X-Dashboard-URL": dashboard_url}
         )
 
     except HTTPException:
