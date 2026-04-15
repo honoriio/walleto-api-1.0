@@ -145,3 +145,4 @@ def excluir_usuario_api(request: Request, current_user: Usuario = Depends(get_cu
         logger.exception(f"Erro inesperado ao excluir conta | usuario_id={current_user.id}")
         raise HTTPException(status_code=500, detail="Erro interno do servidor.")
     
+    

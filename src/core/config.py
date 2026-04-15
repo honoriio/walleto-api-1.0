@@ -59,3 +59,7 @@ LOGS_DIR.mkdir(parents=True, exist_ok=True)
 # ========================
 PASTA_DOCUMENTOS = Path.home() / "Documentos"
 PASTA_DOCUMENTOS.mkdir(parents=True, exist_ok=True)
+
+
+
+print("SECRET API:", os.getenv("SECRET_KEY")) # 111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111

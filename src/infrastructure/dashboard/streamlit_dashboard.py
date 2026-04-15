@@ -26,6 +26,8 @@ from src.core.config import (
 
 ARQUIVO_ESTADO_DASHBOARD = "dashboard_runtime.json"
 
+print("SECRET DASH:", os.getenv("SECRET_KEY"))   # 111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
+
 
 def formatar_moeda_brl(valor: float) -> str:
     return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
