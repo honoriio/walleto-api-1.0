@@ -9,7 +9,6 @@ from src.models.usuario import Usuario
 from fastapi import Request
 from src.core.rate_limiter import limiter
 from src.services.auth_service import get_current_user
-from src.services.dashboard_service import iniciar_dashboard_com_exportacao
 
 logger = logging.getLogger(__name__)
 
