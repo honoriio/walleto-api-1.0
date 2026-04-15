@@ -7,11 +7,7 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 ENV PYTHONPATH=/app
-ENV PORT=10000
-ENV STREAMLIT_SERVER_HEADLESS=true
-ENV STREAMLIT_SERVER_ENABLECORS=false
-ENV STREAMLIT_SERVER_ENABLEXSRFPROTECTION=false
 
 EXPOSE 10000
 
-CMD ["sh", "-c","streamlit run src/infrastructure/dashboard/streamlit_dashboard.py \--server.address=0.0.0.0 \--server.port=$PORT"]
+CMD ["sh", "-c", "streamlit run src/infrastructure/dashboard/streamlit_dashboard.py --server.address=0.0.0.0 --server.port=$PORT"]
