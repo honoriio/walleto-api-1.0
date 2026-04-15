@@ -298,6 +298,8 @@ def test_criar_access_token_nao_altera_dict_original(mocker):
 
 # Teste de expiração de token correta 
 def test_criar_access_token_expiracao_correta(mocker):
+    from datetime import datetime, timezone, timedelta
+
     dados = {
         "sub": "1",
         "email": "diego@gmail.com",
@@ -306,10 +308,7 @@ def test_criar_access_token_expiracao_correta(mocker):
 
     agora_fixo = datetime(2026, 4, 11, 10, 0, 0, tzinfo=timezone.utc)
 
-    mock_datetime = mocker.patch(
-        "src.services.auth_service.datetime"
-    )
-
+    mock_datetime = mocker.patch("src.services.auth_service.datetime")
     mock_datetime.now.return_value = agora_fixo
 
     mock_encode = mocker.patch(
@@ -324,7 +323,7 @@ def test_criar_access_token_expiracao_correta(mocker):
 
     exp_esperado = agora_fixo + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    assert payload["exp"] == exp_esperado
+    assert payload["exp"] == int(exp_esperado.timestamp())
 
 
 # Teste de possivel entrada invalida
@@ -517,6 +516,10 @@ def test_get_current_user_deve_lancar_500_em_erro_inesperado(mocker):
 # TESTES - criar_refresh_token
 # =========================================================
 
+# =========================================================
+# TESTES - criar_refresh_token
+# =========================================================
+
 def test_criar_refresh_token_deve_gerar_token_com_payload_correto(mocker):
     usuario_id = 1
     token_esperado = "refresh_token_gerado"
@@ -542,7 +545,7 @@ def test_criar_refresh_token_deve_gerar_token_com_payload_correto(mocker):
 
     assert payload_enviado["sub"] == "1"
     assert payload_enviado["type"] == "refresh"
-    assert payload_enviado["exp"] == exp_esperado
+    assert payload_enviado["exp"] == int(exp_esperado.timestamp())
     assert kwargs["algorithm"] == mocker.ANY
 
 
@@ -553,6 +556,8 @@ def test_criar_refresh_token_deve_converter_usuario_id_para_string_no_payload(mo
 
     mock_datetime = mocker.patch("src.services.auth_service.datetime")
     mock_datetime.now.return_value = fake_now
+    mock_datetime.timezone = timezone
+    mock_datetime.timedelta = timedelta
 
     mock_encode = mocker.patch(
         "src.services.auth_service.jwt.encode",
@@ -575,6 +580,8 @@ def test_criar_refresh_token_deve_propagar_erro_se_encode_falhar(mocker):
 
     mock_datetime = mocker.patch("src.services.auth_service.datetime")
     mock_datetime.now.return_value = fake_now
+    mock_datetime.timezone = timezone
+    mock_datetime.timedelta = timedelta
 
     mocker.patch(
         "src.services.auth_service.jwt.encode",
@@ -616,6 +623,7 @@ def test_refresh_token_service_deve_retornar_novo_access_token_quando_refresh_fo
         mocker.ANY,
         algorithms=[mocker.ANY]
     )
+
     mock_criar_access.assert_called_once_with(
         data={
             "sub": "1",

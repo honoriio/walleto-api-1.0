@@ -80,7 +80,10 @@ def criar_access_token(data: dict) -> str:
     dados_token = data.copy()
 
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    dados_token.update({"exp": expire})
+
+    dados_token.update({
+        "exp": int(expire.timestamp())
+    })
 
     return jwt.encode(dados_token, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -129,7 +132,7 @@ def criar_refresh_token(usuario_id: int) -> str:
     payload = {
         "sub": str(usuario_id),
         "type": "refresh",
-        "exp": expire
+        "exp": int(expire.timestamp())
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
