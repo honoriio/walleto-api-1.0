@@ -40,6 +40,7 @@ def iniciar_dashboard_api(request: Request, current_user: Usuario = Depends(get_
         logger.exception("Erro inesperado ao iniciar dashboard | usuario_id=%s", current_user.id)
         raise HTTPException(status_code=500, detail="Erro interno ao iniciar dashboard.")
 
+
 @router.post("/encerrar", summary="Encerra o dashboard do usuário",
 description="""
 Finaliza a execução do dashboard ativo do usuário autenticado.
