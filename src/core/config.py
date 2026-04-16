@@ -51,7 +51,7 @@ ARQUIVO_CONTROLE_DASHBOARD = "dashboard_arquivo_atual.txt"
 # ========================
 # LOGS
 # ========================
-LOGS_DIR = BASE_DIR / "logs"
+LOGS_DIR = Path("/tmp/logs")
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
 # ========================
