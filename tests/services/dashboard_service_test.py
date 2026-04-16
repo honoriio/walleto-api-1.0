@@ -1,5 +1,4 @@
 import pytest
-
 from src.services.dashboard_service import obter_gastos_dashboard
 
 
