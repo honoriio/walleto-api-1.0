@@ -40,7 +40,16 @@ def iniciar_dashboard_api(
 
         dashboard_url = f"https://SEU-DASHBOARD.onrender.com/?token={token}"
 
-        return RedirectResponse(url=dashboard_url)
+        logger.info(
+            "Inicialização de dashboard solicitada | usuario_id=%s",
+            current_user.id
+        )
+
+        return {
+            "dashboard_url": dashboard_url,
+            "token": token,
+            "user_id": current_user.id
+        }
 
     except HTTPException:
         raise

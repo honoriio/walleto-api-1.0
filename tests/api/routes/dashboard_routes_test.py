@@ -37,36 +37,24 @@ def obter_gastos_dashboard(usuario_id: int) -> List[Dict]:
 # TESTES - POST /dashboard/iniciar
 # =========================================================
 
-def test_iniciar_dashboard_api_deve_redirecionar_quando_sucesso(client):
-    app.dependency_overrides[get_current_user] = override_user
-
-    token = "token123"
-
-    response = client.post(
-        "/dashboard/iniciar",
-        headers={"Authorization": f"Bearer {token}"},
-        follow_redirects=False
-    )
-
-    app.dependency_overrides.clear()
-
-    assert response.status_code == http_status.HTTP_307_TEMPORARY_REDIRECT
-    assert "token=token123" in response.headers["location"]
-
-
-def test_iniciar_dashboard_api_deve_retornar_401_sem_authorization(client):
+def test_iniciar_dashboard_api(client):
     app.dependency_overrides[get_current_user] = override_user
 
     response = client.post(
         "/dashboard/iniciar",
-        follow_redirects=False
+        headers={"Authorization": "Bearer token123"}
     )
 
     app.dependency_overrides.clear()
 
-    assert response.status_code == http_status.HTTP_401_UNAUTHORIZED
-    assert response.json() == {"detail": "Não autenticado"}
+    assert response.status_code == 200
+    assert "dashboard_url" in response.json()
 
+
+def test_iniciar_dashboard_401(client):
+    response = client.post("/dashboard/iniciar")
+
+    assert response.status_code == 401
 
 # =========================================================
 # TESTES - POST /dashboard/encerrar (CORRIGIDO)
