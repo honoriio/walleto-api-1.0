@@ -1,15 +1,12 @@
-from src.infrastructure.dashboard.streamlit_dashboard import iniciar_dashboard
-from src.infrastructure.exporters.excel_exporter import exportar_gastos_excel
+from typing import List, Dict
 from src.services.gasto_service import consultar_gastos_service
 
 
-def iniciar_dashboard_com_exportacao(usuario_id: int) -> dict:
+def obter_gastos_dashboard(usuario_id: int) -> List[Dict]:
     resultado = consultar_gastos_service(usuario_id=usuario_id)
-    gastos = resultado["gastos"]
+    gastos = resultado.get("gastos", [])
 
     if not gastos:
-        raise ValueError("Não há gastos para gerar o dashboard.")
+        return []
 
-    caminho_arquivo = exportar_gastos_excel(gastos)
-
-    return iniciar_dashboard(caminho_arquivo=caminho_arquivo)
+    return gastos

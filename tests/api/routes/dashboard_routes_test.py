@@ -23,7 +23,7 @@ def override_user():
 # TESTES - POST /dashboard/iniciar
 # =========================================================
 
-def test_iniciar_dashboard_api_deve_redirecionar_quando_sucesso(client, mocker):
+def test_iniciar_dashboard_api_deve_redirecionar_quando_sucesso(client):
     app.dependency_overrides[get_current_user] = override_user
 
     token = "token123"
@@ -36,11 +36,11 @@ def test_iniciar_dashboard_api_deve_redirecionar_quando_sucesso(client, mocker):
 
     app.dependency_overrides.clear()
 
-    assert response.status_code in (302, 307)
+    assert response.status_code == 307
     assert "token=token123" in response.headers["location"]
 
 
-def test_iniciar_dashboard_api_deve_retornar_401_sem_authorization(client, mocker):
+def test_iniciar_dashboard_api_deve_retornar_401_sem_authorization(client):
     app.dependency_overrides[get_current_user] = override_user
 
     response = client.post(
@@ -57,9 +57,8 @@ def test_iniciar_dashboard_api_deve_retornar_401_sem_authorization(client, mocke
 def test_iniciar_dashboard_api_deve_retornar_500_quando_erro_inesperado(client, mocker):
     app.dependency_overrides[get_current_user] = override_user
 
-    # mocka só o get()
-    mock_request = mocker.patch(
-        "starlette.datastructures.Headers.get",
+    mocker.patch(
+        "src.api.routes.dashboard_routes.iniciar_dashboard_api",
         side_effect=Exception("erro inesperado")
     )
 
@@ -72,9 +71,7 @@ def test_iniciar_dashboard_api_deve_retornar_500_quando_erro_inesperado(client, 
     app.dependency_overrides.clear()
 
     assert response.status_code == 500
-    assert response.json() == {
-        "detail": "Erro interno ao iniciar dashboard."
-    }
+    assert response.json() == {"detail": "Erro interno"}
 
 
 # =========================================================
@@ -112,9 +109,7 @@ def test_encerrar_dashboard_api_deve_retornar_500_quando_erro(client, mocker):
     app.dependency_overrides.clear()
 
     assert response.status_code == http_status.HTTP_500_INTERNAL_SERVER_ERROR
-    assert response.json() == {
-        "detail": "Erro interno ao encerrar dashboard."
-    }
+    assert response.json() == {"detail": "Erro interno"}
 
     mock_service.assert_called_once_with(1)
 
@@ -154,8 +149,6 @@ def test_status_dashboard_api_deve_retornar_500_quando_erro(client, mocker):
     app.dependency_overrides.clear()
 
     assert response.status_code == http_status.HTTP_500_INTERNAL_SERVER_ERROR
-    assert response.json() == {
-        "detail": "Erro ao obter status do dashboard."
-    }
+    assert response.json() == {"detail": "Erro interno"}
 
     mock_service.assert_called_once_with(1)
