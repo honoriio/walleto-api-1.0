@@ -37,7 +37,7 @@ def iniciar_dashboard_api(
 
         token = auth_header.replace("Bearer ", "")
 
-        dashboard_url = f"https://SEU-DASHBOARD.onrender.com/?token={token}"
+        dashboard_url = f"https://dashboard-dwgn.onrender.com/?token={token}"
 
         logger.info(
             "Inicialização de dashboard solicitada | usuario_id=%s",
