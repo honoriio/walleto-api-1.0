@@ -41,18 +41,16 @@ def iniciar_dashboard_api(
         token = auth_header.replace("Bearer ", "")
 
         session_id = create_session(current_user.id)
-        dashboard_url = f"https://seu-dashboard.onrender.com/?session={session_id}"
+        dashboard_url = f"https://dashboard-dwgn.onrender.com/?session={session_id}"
 
         logger.info(
             "Inicialização de dashboard solicitada | usuario_id=%s",
             current_user.id
         )
 
-        return HTMLResponse(f"""
-                <a href="{dashboard_url}" target="_blank">
-                    Abrir Dashboard
-                </a>
-        """)
+        return {
+            "dashboard_url": dashboard_url
+        }
 
     except HTTPException:
         raise
