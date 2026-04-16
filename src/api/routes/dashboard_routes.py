@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 import logging
 
+from fastapi.responses import HTMLResponse
+
 from src.models.usuario import Usuario
 from src.services.auth_service import get_current_user
+from src.core.session import create_session
 
 logger = logging.getLogger(__name__)
 
@@ -37,18 +40,19 @@ def iniciar_dashboard_api(
 
         token = auth_header.replace("Bearer ", "")
 
-        dashboard_url = f"https://dashboard-dwgn.onrender.com/?token={token}"
+        session_id = create_session(current_user.id)
+        dashboard_url = f"https://seu-dashboard.onrender.com/?session={session_id}"
 
         logger.info(
             "Inicialização de dashboard solicitada | usuario_id=%s",
             current_user.id
         )
 
-        return {
-            "dashboard_url": dashboard_url,
-            "token": token,
-            "user_id": current_user.id
-        }
+        return HTMLResponse(f"""
+                <a href="{dashboard_url}" target="_blank">
+                    Abrir Dashboard
+                </a>
+        """)
 
     except HTTPException:
         raise
