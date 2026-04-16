@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 def setup_logging() -> None:
-    logs_dir = Path("logs")
+    logs_dir = Path("/tmp/logs")
     logs_dir.mkdir(parents=True, exist_ok=True)
 
     log_file = logs_dir / "app.log"
