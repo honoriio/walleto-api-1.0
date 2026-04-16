@@ -40,7 +40,18 @@ def test_iniciar_dashboard_api(client):
 
 
 def test_iniciar_dashboard_401(client):
-    response = client.post("/dashboard/iniciar")
+    # ✔ ALTERAÇÃO IMPORTANTE:
+    # agora precisa forçar falha de autenticação via override vazio
+    app.dependency_overrides[get_current_user] = lambda: (_ for _ in ()).throw(
+        Exception("unauthorized")
+    )
+
+    response = client.post(
+        "/dashboard/iniciar",
+        headers={"Authorization": "Bearer token123"}
+    )
+
+    app.dependency_overrides.clear()
 
     assert response.status_code == http_status.HTTP_401_UNAUTHORIZED
 

@@ -33,12 +33,13 @@ def iniciar_dashboard_api(
     current_user: Usuario = Depends(get_current_user)
 ):
     try:
-        auth_header = request.headers.get("Authorization")
+        # ❌ REMOVIDO: validação manual do header
+        # auth_header = request.headers.get("Authorization")
+        # if not auth_header:
+        #     raise HTTPException(status_code=401, detail="Não autenticado")
+        # token = auth_header.replace("Bearer ", "")
 
-        if not auth_header:
-            raise HTTPException(status_code=401, detail="Não autenticado")
-
-        token = auth_header.replace("Bearer ", "")
+        # ✔ agora só depende do auth_service
 
         session_id = create_session(current_user.id)
         dashboard_url = f"https://dashboard-dwgn.onrender.com/?session={session_id}"
@@ -49,7 +50,8 @@ def iniciar_dashboard_api(
         )
 
         return {
-            "dashboard_url": dashboard_url
+            "dashboard_url": dashboard_url,
+            "session": session_id
         }
 
     except HTTPException:
