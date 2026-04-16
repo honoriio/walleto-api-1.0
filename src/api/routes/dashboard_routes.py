@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
-@router.post("/iniciar", summary="Inicia o dashboard do usuário", include_in_schema=True)
+@router.post("/iniciar", summary="Inicia o dashboard do usuário", include_in_schema=False)
 @limiter.limit("10/hour")
 def iniciar_dashboard_api(request: Request, current_user: Usuario = Depends(get_current_user)):
     logger.info("Inicialização de dashboard solicitada | usuario_id=%s",current_user.id)
