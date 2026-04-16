@@ -1,24 +1,34 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 import logging
 
-from fastapi.responses import RedirectResponse
-from src.infrastructure.dashboard.streamlit_dashboard import encerrar_dashboard, obter_status_dashboard
 from src.models.usuario import Usuario
-from fastapi import Request
-from src.core.rate_limiter import limiter
 from src.services.auth_service import get_current_user
-from src.services.dashboard_service import iniciar_dashboard_com_exportacao
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
-@router.post("/iniciar", summary="Inicia o dashboard do usuário", include_in_schema=True)
-@limiter.limit("10/hour")
-def iniciar_dashboard_api(request: Request, current_user: Usuario = Depends(get_current_user)):
-    logger.info("Inicialização de dashboard solicitada | usuario_id=%s",current_user.id)
+@router.get("/dados")
+def obter_dados_dashboard(
+    current_user: Usuario = Depends(get_current_user)
+):
+    from src.services.dashboard_service import obter_gastos_dashboard
 
+    try:
+        dados = obter_gastos_dashboard(current_user.id)
+        return {"gastos": dados}
+
+    except Exception:
+        logger.exception("Erro ao obter dados do dashboard")
+        raise HTTPException(status_code=500, detail="Erro interno")
+
+
+@router.post("/iniciar")
+def iniciar_dashboard_api(
+    request: Request,
+    current_user: Usuario = Depends(get_current_user)
+):
     try:
         auth_header = request.headers.get("Authorization")
 
@@ -27,16 +37,24 @@ def iniciar_dashboard_api(request: Request, current_user: Usuario = Depends(get_
 
         token = auth_header.replace("Bearer ", "")
 
-        dashboard_url = f"https://dashboard-dwgn.onrender.com/?token={token}"
+        dashboard_url = f"https://SEU-DASHBOARD.onrender.com/?token={token}"
 
-        logger.info("Redirecionando para dashboard | usuario_id=%s",current_user.id)
+        logger.info(
+            "Inicialização de dashboard solicitada | usuario_id=%s",
+            current_user.id
+        )
 
-        return RedirectResponse(url=dashboard_url)
+        return {
+            "dashboard_url": dashboard_url,
+            "token": token,
+            "user_id": current_user.id
+        }
 
     except HTTPException:
         raise
 
     except Exception:
+<<<<<<< HEAD
         logger.exception("Erro inesperado ao iniciar dashboard | usuario_id=%s", current_user.id)
         raise HTTPException(status_code=500, detail="Erro interno ao iniciar dashboard.")
 
@@ -73,3 +91,9 @@ def status_dashboard_api(request: Request, current_user: Usuario = Depends(get_c
     except Exception:
         logger.exception("Erro ao obter status do dashboard | usuario_id=%s", current_user.id)
         raise HTTPException(status_code=500,detail="Erro ao obter status do dashboard.")
+
+        logger.exception("Erro ao iniciar dashboard")
+        raise HTTPException(status_code=500, detail="Erro interno")
+
+    
+    
