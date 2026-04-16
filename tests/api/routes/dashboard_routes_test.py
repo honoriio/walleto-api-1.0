@@ -22,21 +22,6 @@ def override_user():
 
 
 
-def obter_gastos_dashboard(usuario_id: int) -> List[Dict]:
-    resultado = consultar_gastos_service(usuario_id=usuario_id)
-
-    gastos = resultado.get("gastos", [])
-
-    if not isinstance(gastos, list):
-        return []
-
-    return gastos
-
-
-# =========================================================
-# TESTES - POST /dashboard/iniciar
-# =========================================================
-
 def test_iniciar_dashboard_api(client):
     app.dependency_overrides[get_current_user] = override_user
 
@@ -48,7 +33,8 @@ def test_iniciar_dashboard_api(client):
     app.dependency_overrides.clear()
 
     assert response.status_code == 200
-    assert "dashboard_url" in response.json()
+    assert "Abrir Dashboard" in response.text
+    assert "session=" in response.text
 
 
 def test_iniciar_dashboard_401(client):
@@ -56,27 +42,14 @@ def test_iniciar_dashboard_401(client):
 
     assert response.status_code == 401
 
-# =========================================================
-# TESTES - POST /dashboard/encerrar (CORRIGIDO)
-# =========================================================
 
 def test_encerrar_dashboard_api_placeholder(client):
     response = client.post("/dashboard/encerrar")
 
-    assert response.status_code in (
-        http_status.HTTP_200_OK,
-        http_status.HTTP_404_NOT_FOUND
-    )
+    assert response.status_code in (200, 404)
 
-
-# =========================================================
-# TESTES - GET /dashboard/status (CORRIGIDO)
-# =========================================================
 
 def test_status_dashboard_api_placeholder(client):
     response = client.get("/dashboard/status")
 
-    assert response.status_code in (
-        http_status.HTTP_200_OK,
-        http_status.HTTP_404_NOT_FOUND
-    )
+    assert response.status_code in (200, 404)
