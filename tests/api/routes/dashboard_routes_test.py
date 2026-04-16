@@ -1,5 +1,6 @@
 import pytest
 from starlette import status as http_status
+from fastapi import HTTPException
 
 from src.api.main import app
 from src.services.auth_service import get_current_user
@@ -16,6 +17,10 @@ class DummyUser:
 
 def override_user():
     return DummyUser(id=1)
+
+
+def override_auth_fail():
+    raise HTTPException(status_code=401, detail="Não autenticado")
 
 
 # =========================================================
@@ -40,11 +45,8 @@ def test_iniciar_dashboard_api(client):
 
 
 def test_iniciar_dashboard_401(client):
-    # ✔ ALTERAÇÃO IMPORTANTE:
-    # agora precisa forçar falha de autenticação via override vazio
-    app.dependency_overrides[get_current_user] = lambda: (_ for _ in ()).throw(
-        Exception("unauthorized")
-    )
+    # ✔ CORRETO AGORA
+    app.dependency_overrides[get_current_user] = override_auth_fail
 
     response = client.post(
         "/dashboard/iniciar",
